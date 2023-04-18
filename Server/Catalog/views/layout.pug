@@ -1,0 +1,23 @@
+doctype html
+html
+  head
+    title= title
+
+    //-- Meta --
+    meta(http-equiv="Content-Type", content="text/html; charset=UTF-8")
+    meta(name="viewport", content="width=device-width,initial-scale=1.0")
+
+    // -- Style Sheets --
+    link(rel="shortcut icon", type="image/x-icon" href="../spbills.jpg")
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel="stylesheet", href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css")
+
+    //--JS--
+    script(type="module", src="./js/planobject.js")
+    script(src="./js/formvalidate.js", defer)
+    script(src="https://code.jquery.com/jquery-3.6.3.min.js", integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=", crossorigin="anonymous")
+    script(src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js", integrity="sha256-eTyxS0rkjpLEo16uXTS0uVCS4815lc40K2iVpWDvdSY=", crossorigin="anonymous")
+    script(src="./js/ajax.js")
+    
+  body
+    block content
