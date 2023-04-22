@@ -1,44 +1,34 @@
-import {Component} from 'react';
-import logo from './logo.svg';
+//import { Component, useState, createContext } from 'react';
+import { TL, TR, BL, BR, APE_Header } from './APE/ape.js';
+import { Route, Routes, BrowserRouter as Router } from "react-router-dom";
 import './App.css';
+import './css/style.css';
+import LoginPage from './login/index.js';
+import { ProvideAuth, PrivateRoute } from './services/AuthService';
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { apiResponse: "" };
-  }
+function App() {
+  return (
+    <ProvideAuth>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<LoginPage />} />
 
-  callAPI() {
-    fetch("http://localhost:3001/Catalog")
-      .then(res => res.text())
-      .then(res => this.setState({ apiResponse: res }));
-  }
-
-  componentWillMount() {
-    this.callAPI();
-  }
-
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-        <p className="App-intro">{this.state.apiResponse}</p>
-      </div>
-    );
-  }
+          <Route path="/" element={<PrivateRoute />}>
+            <Route path="/" element={<div>
+              <APE_Header />
+              <main id="main">
+                <TL />
+                <TR />
+                <BL />
+                <BR />
+              </main>
+            </div>} />
+          </Route>
+        </Routes>
+      </Router>
+    </ProvideAuth>
+  );
 }
 
 export default App;

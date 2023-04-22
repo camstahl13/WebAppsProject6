@@ -1,0 +1,138 @@
+/* LOGIN SCC */
+
+@font-face {
+    font-family: moon;
+    src: url(../css/78446ac31dfd9bec4c55.otf) format("woff2");
+  }
+  
+  .moon-font {
+    font-family: moon;
+    letter-spacing: 0.1em;
+  }
+  
+
+  
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  form>section {
+    align-self: center;
+  }
+  
+  
+  #main {
+    margin-bottom: 2rem;
+  }
+  
+  .login-cred>li>img {
+    opacity: 20%;
+    position: absolute;
+    top: 25%;
+    right: 2%;
+    height: 21px;
+  }
+  
+  .btn {
+    font-size: inherit;
+    display: inline-flex;
+    align-self: center;
+    font-family: inherit;
+    letter-spacing: inherit;
+    padding-inline: 1em;
+    text-decoration: none;
+    background-color: #1d99fb;
+    color: white;
+    box-shadow: 3px 5px 16px rgba(0, 0, 0, 25%);
+    height: 2em;
+    border: none;
+    outline: none;
+    border-radius: 0.5em;
+    align-items: center;
+  }
+  
+  .login-cred {
+    max-width: 500px;
+    min-width: 300px;
+    align-self: center;
+    box-shadow: 3px 5px 15px rgba(0, 0, 0, 3%);
+    list-style: none;
+    color: #2c3542;
+    border: solid 0.1em currentColor;
+    border-radius: 1em;
+    overflow: hidden;
+    padding: 0;
+  }
+  
+  .login-cred>li {
+    position: relative;
+    padding: 0;
+    border: none;
+    background: none;
+    border-bottom: 1px solid currentColor;
+  }
+  
+  .login-cred label {
+    font: inherit;
+  }
+  
+  .login-cred label>span{
+    color: #757575;
+    position: absolute;
+    margin-left: 1em;
+    pointer-events: none;
+    transition: all 0.2s;
+    top:1em;
+    left:0;
+  }
+  
+  .login-cred input:focus + span, 
+  .login-cred input.filled + span {
+    position: absolute;
+    font-size: small;  
+    top: 0;
+    left: 0;
+  }
+  
+  .login-cred input{
+    margin-top: 2em;
+  }
+  
+  
+  .login-cred>li:last-child {
+    border: none
+  }
+  
+  .login-cred>li input,
+  .login-cred>li input:focus-visible {
+    font-size: inherit;
+    font-family: inherit;
+    letter-spacing: inherit;
+    outline: none;
+    border: none;
+    color: white;
+    height: 100%;
+    width: -webkit-fill-available;
+    padding: 0;
+    background: none;
+    margin: 1em
+  }
+  
+  .login-cred>li select{
+    width: -webkit-fill-available;
+    height: 3em;
+    background: #1c2128;
+    color: white;
+    border: none;
+    outline: none;
+    letter-spacing: inherit;
+    font: inherit;
+    margin-left: 1em;
+  }
+  
+  input[type=password]::-ms-reveal,
+  input[type=password]::-ms-clear
+  {
+    display: none;
+  }
