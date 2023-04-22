@@ -564,7 +564,7 @@ ul.course-list > li {
 }
 
 #catalog::-webkit-scrollbar-thumb {
-	background: url('../../../apple-touch-icon-57x57.png');
+	/*background: url('../../../apple-touch-icon-57x57.png');*/
 	border-radius: 25px;
 }
 
