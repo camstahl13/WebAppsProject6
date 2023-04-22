@@ -274,10 +274,6 @@ main > div .sec-header form.input {
 	margin-right: 5px;
 }
 
-#accordion .unplanned {
-	/*color: #9a9a9ab3;*/
-}
-
 #bar {
   display: none;
 }
@@ -564,7 +560,7 @@ ul.course-list > li {
 }
 
 #catalog::-webkit-scrollbar-thumb {
-	background: url('../../../apple-touch-icon-57x57.png');
+	/*background: url('../../../apple-touch-icon-57x57.png');*/
 	border-radius: 25px;
 }
 
