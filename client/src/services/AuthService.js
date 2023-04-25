@@ -1,11 +1,11 @@
-import React, { useContext, createContext, useState, useEffect } from "react";
+import React, { useContext, createContext, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 
 const authContext = createContext();
 
-function getContextState() {
-	let state = localStorage.getItem("auth");
-	return state;
+async function getContextState() {
+	let singedIn = await AuthService.isAuthenticated();
+	return singedIn;
 }
 
 export function useAuth() {
@@ -30,13 +30,6 @@ export function ProvideAuth({ children }) {
 
 function useUserAuth() {
 	const [user, setUser] = useState(getContextState);
-
-	useEffect(() => {
-		if (user === null)
-			localStorage.removeItem("auth");
-		else
-			localStorage.setItem("auth", user);
-	}, [user]);
 
 	const signin = async (uname, pass) => {
 		return await AuthService.login(uname, pass)
@@ -66,18 +59,36 @@ export function Authenticate(e) {
 };
 
 const AuthService = {
-	isAuthenticated: () => {
-		return User.loggedIn;
+	isAuthenticated: async () => {
+
+		const cfg = {
+			method: 'GET',
+			credentials: "include",
+			headers: { 'content-type': 'application/json' },
+		}
+		let response = {};
+
+			await fetch("http://localhost:3001/api/user", cfg)
+				.then(res => {
+					response.status = res.status;
+					return res.json();
+				})
+				.then(data => {
+					response.username = data.username
+				});
+
+		return response.statusCode === 200 ? response.username : null;
 	},
+
 	async login(uname, pass) {
-		const loginData = {
+		const cfg = {
 			method: 'POST',
 			credentials: "include",
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ uname: uname, pass: pass }),
 		}
 		let response = {};
-		await fetch("http://localhost:3001/api/user/login", loginData)
+		await fetch("http://localhost:3001/api/user/login", cfg)
 			.then(res => {
 				response.status = res.status;
 				return res.json();

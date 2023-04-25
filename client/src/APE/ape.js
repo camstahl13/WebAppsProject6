@@ -22,10 +22,23 @@ function Singout() {
 class APE_Header extends Component {
     constructor(props) {
 		super(props);
-		this.state = { apiResponse: "" };
+		this.state = { apiResponse: "", heading: {} };
 	}
 
+    async callAPI() {
+        //Get Heading Infomation
+        await fetch("http://localhost:3001/api/plan", {method: 'GET', credentials: "include"})
+            .then(res => res.json())
+            .then(res => this.setState({ heading: res[0] }));
+    }
+
+    componentDidMount() {
+        this.callAPI();
+        
+    }
+
     render() {
+        const { heading } = this.state;
         return (
             <header className="bg-dark sticky-top" style={{lineheight: '5px'}}>
                 <nav className="main-nav shadow">
@@ -37,8 +50,8 @@ class APE_Header extends Component {
                             <b>Catalog:</b>
                         </li>
                         <li>
-                            <p id="studentName"></p>
-                            <p id="catalogYear"></p>
+                            <p id="studentName">{heading ? heading.username : "Loading..."}</p>
+                            <p id="studentName">{heading ? heading.catalog_year : "Loading..."}</p>
                         </li>
                         <li>
                             <b>Majors:</b>
