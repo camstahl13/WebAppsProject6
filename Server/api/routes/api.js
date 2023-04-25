@@ -1,14 +1,27 @@
 const sha256 = require('../src/sha256');
-const Unothorized_Message = { message: "Unauthorized", error: { status: 403, stack: "" } };
-
 var express = require('express');
 var router = express.Router();
+
+const unauthorizedMessage = {
+  message: "Unauthorized",
+  error: {
+    status: 403
+  }
+};
+
+// Middleware to check session
+const checkSession = (req, res, next) => {
+  if (!req.session.username) {
+    return res.status(403).send(unauthorizedMessage);
+  }
+  next();
+};
 
 
 var db = require('../db/database')
 
-/* GET home page. */
-router.get('/user', function (req, res, next) {
+/* GET User Information if loged in */
+router.get('/user', checkSession, async (req, res) => {
   console.log("GET API REQEST -> user - RESPONSE: " + req.session.username);
 
   if (req.session.username)
@@ -31,7 +44,7 @@ router.post('/user/login', (req, res) => {
   console.log("API Login -> User:" + uname + ", Password:" + pass);
 
   if (uname && pass) {
-    db.query('SELECT * FROM ljc_user WHERE username = ? AND password = ?', [uname, sha256.sha256(pass)], (error, results, fields) => {
+    db.query('SELECT * FROM ljc_user WHERE username = ? AND password = ?', [uname, sha256.sha256(pass)], (error, results) => {
       if (error) throw error;
 
       if (results.length > 0) {
@@ -48,7 +61,7 @@ router.post('/user/login', (req, res) => {
 });
 
 //TEST URI -> /api/test
-router.get('/test', function (req, res, next) {
+router.get('/test', function (req, res) {
   res.send("API working properly");
 });
 
@@ -56,18 +69,18 @@ router.get('/test', function (req, res, next) {
 
 const getPlannedCQuary = `select * from ljc_planned_courses where plan_id= ?;`;
 
-router.get('/plannedCourses/:plan_id', function (req, res, next) {
+router.get('/plannedCourses/:plan_id', checkSession, async (req, res) => {
   console.log("API REQEST -> plan, Username - " + req.session.username);
-  console.log(req.session);
-  if (req.session.username) {
-    db.query(getPlannedCQuary, [req.params.plan_id], function (err, result, fields) {
+  try{
+    db.query(getPlannedCQuary, [req.params.plan_id], function (err, result) {
       if (err) { res.status(500); console.log(err); return; }
 
       res.status(200).send(result);
     });
   }
-  else {
-    res.status(403).send(Unothorized_Message);
+  catch (err) {
+    console.error(err);
+    res.status(500).send(err);
   }
 });
 
@@ -85,34 +98,34 @@ from
 where
   username = ? and minor != 'Gen Eds';`;
 
-router.get('/heading', function (req, res, next) {
+router.get('/heading', checkSession, async (req, res) => {
   console.log("API REQEST -> heading, Username - " + req.session.username);
-  if (!req.session.username) {
-    res.status(403).send(Unothorized_Message);
-    return;
+  
+  try{
+    db.query(getHeadingQuary, [req.session.username], (err, result) => {
+      if (err) { res.status(500); console.log(err); return; }
+
+      res.status(200).send(result);
+    });
   }
-  //console.log("WORNING: AUTHORIZATION DISABLED");
-  // /!\ Authorized after this point /!\
-  db.query(getHeadingQuary, [req.session.username], function (err, result, fields) {
-    if (err) { res.status(500); console.log(err); return; }
-
-    res.status(200).send(result);
-  });
-
+  catch(err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
 
 });
 
 //Get Catalog URI -> /api/catalog
-router.get('/Catalog', function (req, res, next) {
+router.get('/Catalog', async (req, res) => {
   console.log("API REQEST -> heading, Username - " + req.session.username);
-  if (!req.session.username) {
-    res.status(403).send(Unothorized_Message);
-    return;
-  }
-  console.log("WORNING: AUTHORIZATION DISABLED");
-  // /!\ Authorized after this point /!\
-  res.status(418).send({ message: "METHOD NOT IMPLEMENTED" });
 
+  try{
+    res.status(418).send({ message: "METHOD NOT IMPLEMENTED" });
+  }
+  catch(err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
 });
 
 module.exports = router;
