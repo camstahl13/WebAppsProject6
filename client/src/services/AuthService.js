@@ -3,8 +3,8 @@ import { Navigate, Outlet, useNavigate } from "react-router-dom";
 
 const authContext = createContext();
 
-async function getContextState() {
-	let singedIn = await AuthService.isAuthenticated();
+function getContextState() {
+	let singedIn = AuthService.isAuthenticated();
 	return singedIn;
 }
 
@@ -15,7 +15,7 @@ export function useAuth() {
 
 export function PrivateRoute({ children, ...rest }) {
 	let auth = useAuth();
-	console.log(auth);
+	console.log(auth.user);
 	return auth.user ? <Outlet /> : <Navigate to="/login" />;
 }
 
@@ -31,8 +31,8 @@ export function ProvideAuth({ children }) {
 function useUserAuth() {
 	const [user, setUser] = useState(getContextState);
 
-	const signin = async (uname, pass) => {
-		return await AuthService.login(uname, pass)
+	const signin = (uname, pass) => {
+		return AuthService.login(uname, pass)
 			.then((res) => {
 				if (res.loggedIn)
 					setUser(res.Username);
@@ -96,6 +96,7 @@ const AuthService = {
 			.then(data => {
 				console.log(data.message);
 				response.username = data.username
+				App.setState({ user: data })
 
 			});
 

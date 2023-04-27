@@ -1,0 +1,90 @@
+[
+    {
+        "title": "Test API",
+        "description": "Pokes the API to see of its running",
+        "method": "GET",
+        "path": "/api/test",
+        "response": "API working properly"
+    },
+    {
+        "title": "Get User",
+        "description": "Get a user by ID",
+        "method": "GET",
+        "path": "/api/user",
+        "response": {
+            "username": "string",
+            "first_name": "string",
+            "last_name": "string",
+            "isfaculty": true
+        }
+    },
+    {
+        "title": "Get Plans",
+        "description": "Get all of the users plans",
+        "method": "GET",
+        "path": "/api/plans",
+        "response": {
+            "plan_id": 0,
+            "planname": "defualt",
+            "catalog": 2020,
+            "defualt": true
+        }
+    },
+    {
+        "title": "Get Plan",
+        "description": "Get all years that are planned and the courses in them",
+        "method": "GET",
+        "path": "/api/plan/:plan_id",
+        "params": [
+            {
+                "name": "plan_id",
+                "type": "int",
+                "description": "The ID of the plan to retrieve"
+            }
+        ],
+        "response": {
+            "year": 2020,
+            "term": {
+                "FA": {
+                    "BIO-1115": {
+                        "title": "Biology I: Cell Biology",
+                        "credits": 4
+                    }
+                },
+                "SP": {},
+                "SU": {}
+            }
+        }
+    },
+    {
+        "title": "User Logout",
+        "description": "Logout the currently logged in user",
+        "method": "POST",
+        "path": "/api/user/logout",
+        "response": {
+            "title": "API working properly",
+            "loggedin": "Logged Out"
+        }
+    },
+    {
+        "title": "User Login",
+        "description": "Authenticate user credentials and start a session",
+        "method": "POST",
+        "path": "/api/user/login",
+        "params": [
+            {
+                "name": "uname",
+                "type": "string",
+                "description": "The username of the user"
+            },
+            {
+                "name": "pass",
+                "type": "string",
+                "description": "The password of the user"
+            }
+        ],
+        "response": {
+            "username": "string"
+        }
+    }
+]

@@ -3,46 +3,46 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/AuthService';
 
 function Singout() {
-	let nav = useNavigate();
-	let auth = useAuth();
+    let nav = useNavigate();
+    let auth = useAuth();
 
-	let AuthSignout = async (e) => {
-		e.preventDefault();
-		await auth.signout();
-	    nav('/login');
-	}
+    let AuthSignout = async (e) => {
+        e.preventDefault();
+        await auth.signout();
+        nav('/login');
+    }
 
     return (
-        <form onSubmit={(e)=> AuthSignout(e)} method="post">
-        <button className="btt-primary" type="submit">Log Out</button>
-    </form>
+        <form onSubmit={(e) => AuthSignout(e)} method="post">
+            <button className="btt-primary" type="submit">Log Out</button>
+        </form>
     );
 }
 
 class APE_Header extends Component {
     constructor(props) {
-		super(props);
-		this.state = { apiResponse: "", heading: {} };
-	}
+        super(props);
+        this.state = { apiResponse: "", heading: {} };
+    }
 
     async callAPI() {
         //Get Heading Infomation
-        await fetch("http://localhost:3001/api/plan", {method: 'GET', credentials: "include"})
+        await fetch("http://localhost:3001/api/heading", { method: 'GET', credentials: "include" })
             .then(res => res.json())
             .then(res => this.setState({ heading: res[0] }));
     }
 
     componentDidMount() {
         this.callAPI();
-        
+
     }
 
     render() {
         const { heading } = this.state;
         return (
-            <header className="bg-dark sticky-top" style={{lineheight: '5px'}}>
+            <header className="bg-dark sticky-top" style={{ lineheight: '5px' }}>
                 <nav className="main-nav shadow">
-                    <div id="header-logo" style={{position: 'relative'}}><b>ACADEMIC</b>-PLANNING</div>
+                    <div id="header-logo" style={{ position: 'relative' }}><b>ACADEMIC</b>-PLANNING</div>
                     <div id="version" className="text-secondary"><span>Version 0.0.1</span></div>
                     <ul id="stu-info" className="text-secondary row">
                         <li>
@@ -58,8 +58,8 @@ class APE_Header extends Component {
                             <b>Minors:</b>
                         </li>
                         <li>
-                            <p id="major"></p>
-                            <p id="minor"></p>
+                            <p id="major">{heading ? heading.major : "Loading..."}</p>
+                            <p id="minor">{heading ? heading.minor : "Loading..."}</p>
                         </li>
                     </ul>
                     <div id="actions">
@@ -97,15 +97,49 @@ class TL extends Component {
     };
 
 }
-
+//TODO - FINISH THIS, right now it just bare bones on how to get data from api and use it
 class TR extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = { plan: [] };
+    }
+
+    async callAPI() {
+        //Get User Plan
+        await fetch("http://localhost:3001/api/plan/106", { method: 'GET', credentials: "include" })
+            .then(res => res.json())
+            .then(res => this.setState({ plan: res }));
+    }
+
+    componentDidMount() {
+        this.callAPI();
+
+    }
+
     render() {
+        const { plan } = this.state;
         return (
             <div id="TR" className="aca-panel">
                 <div className="sec-header">
                     <h1>Academic Plan</h1>
                 </div>
                 <ul id="aca-plan">
+                    <li class="scheduled">
+                        <p class="sem">{plan[0] ? plan[0].year : 'N/A'}</p>
+                        <p class="hours text-secondary">Hours: 20</p>
+                        <div class="sem-courses">
+                            <ul class="course-list">
+                                <li draggable="true">BTGE-1725 Bible &amp; the Gospel</li>
+                                <li draggable="true">COM-1100 Fundamentals of Speech</li>
+                                <li draggable="true">CS-1210 C++ Programming</li>
+                                <li draggable="true">CS-3610 Database Org &amp; Design</li>
+                                <li draggable="true">CY-3420 Cyber Defense</li>
+                                <li draggable="true">EGCP-4310 Computer Networks</li>
+                                <li draggable="true">MATH-3760 Numerical Analysis</li>
+                            </ul>
+                        </div>
+                    </li>
                 </ul>
             </div>
         )

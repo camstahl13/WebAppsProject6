@@ -1,6 +1,35 @@
-extends layout
+doctype html
 
-block content
-  h1= title
-  p= loggedin
+html
+  head
+    title API Documentation
+    link(rel='stylesheet', href='/stylesheets/help.css')
+    
+  body
+    h1 API Documentation
+    each call in calls
+      div
+        h2= call.title
+        p= call.description
+        p To use this API, make a #{call.method} request to #{call.path}.
+        if call.params
+          h3 Request Parameters
+          table
+            thead
+              tr
+                th Name
+                th Type
+                th Description
+            tbody
+              each param in call.params
+                tr
+                  td= param.name
+                  td= param.type
+                  td= param.description
+        if call.response
+          h3 Response
+          pre
+            code= JSON.stringify(call.response)
+      br
+
   
