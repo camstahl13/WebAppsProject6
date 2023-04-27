@@ -702,3 +702,36 @@ ul.course-list > li {
 	display: grid;
 	grid-template-columns: auto auto auto auto auto;
 }
+
+div.accordion__item {
+  margin: 5px;
+  background-image: linear-gradient(45deg, #ffffff21, #ffffff42);
+  border-radius: 5px;
+}
+
+div.accordion__heading {
+  background-image: linear-gradient(45deg, #6d2e69, #b558af);
+  border-radius: 5px;
+  padding: 5px;
+}
+
+div.accordion__heading:hover {
+  cursor: pointer;
+}
+
+ul.reqcat {
+  list-style-type: none;
+  padding: 5px;
+  margin: 0px;
+  font-size: 0.7em;
+}
+
+li.reqcourse {
+  border-radius: 5px;
+  padding: 0px 5px;
+}
+
+li.reqcourse:hover {
+  background-color: #ffffff3b;
+  cursor: pointer;
+}
