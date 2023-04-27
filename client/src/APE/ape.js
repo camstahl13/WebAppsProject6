@@ -1,6 +1,8 @@
 import { Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/AuthService';
+import { Accordion, AccordionItem, AccordionItemButton, AccordionItemPanel, AccordionItemHeading} 
+    from 'react-accessible-accordion';
 
 function Singout() {
 	let nav = useNavigate();
@@ -34,7 +36,6 @@ class APE_Header extends Component {
 
     componentDidMount() {
         this.callAPI();
-        
     }
 
     render() {
@@ -85,11 +86,35 @@ class APE_Header extends Component {
 }
 
 class TL extends Component {
+    constructor(props) {
+		super(props);
+		this.state = { requirements: [] };
+	}
+
+    async getRequirements() {
+        await fetch("http://localhost:3001/api/requirements", {method: 'GET', credentials: "include"})
+            .then(res => this.setState({ requirements: res.json().categories }));
+    }
+
     render() {
         return (
             <div id="TL">
                 <div className="sec-header">
                     <h1>Requirements</h1>
+                    <Accordion>
+                        {Object.keys(requirements).map(category =>
+                            <AccordionItem>
+                                <AccordionItemHeading>
+                                    <AccordionItemButton>
+                                        {category}
+                                    </AccordionItemButton>
+                                </AccordionItemHeading>
+                                <AccordionItemPanel>
+                                    {requirements[category].courses.map(course =>
+                                        <p>{course}</p>)}
+                                </AccordionItemPanel>
+                            </AccordionItem>)}
+                    </Accordion>
                 </div>
                 <div id="accordion"></div>
             </div>
