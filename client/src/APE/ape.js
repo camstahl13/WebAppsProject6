@@ -1,6 +1,9 @@
 import { Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/AuthService';
+import { Accordion, AccordionItem, AccordionItemButton, AccordionItemPanel, AccordionItemHeading} 
+    from 'react-accessible-accordion';
+import Draggable, {DraggableCore} from 'react-draggable';
 
 function Singout() {
     let nav = useNavigate();
@@ -34,7 +37,10 @@ class APE_Header extends Component {
 
     componentDidMount() {
         this.callAPI();
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     }
 
     render() {
@@ -85,13 +91,49 @@ class APE_Header extends Component {
 }
 
 class TL extends Component {
+    constructor(props) {
+		super(props);
+		this.state = { requirements: [] };
+	}
+
+    componentDidMount() {
+        this.getRequirements();
+    }
+
+    eventHandler (e, data) {
+        console.log('Event Type', e.type);
+        console.log({e, data});
+      }
+
+    async getRequirements() {
+        await fetch("http://localhost:3001/api/requirements", {method: 'GET', credentials: "include"})
+            .then(res => res.json())
+            .then(res => this.setState({ requirements: res.categories }));
+    }
+
     render() {
         return (
             <div id="TL">
                 <div className="sec-header">
                     <h1>Requirements</h1>
                 </div>
-                <div id="accordion"></div>
+                <Accordion allowZeroExpanded>
+                    {this.state.requirements &&
+                    Object.keys(this.state.requirements).map(category =>
+                        <AccordionItem>
+                            <AccordionItemHeading>
+                                <AccordionItemButton>
+                                    {category}
+                                </AccordionItemButton>
+                            </AccordionItemHeading>
+                            <AccordionItemPanel>
+                                <ul className="reqcat">
+                                    {this.state.requirements[category].courses.map(course =>
+                                            <li key={course} className="reqcourse">{course}</li>)}
+                                </ul>
+                            </AccordionItemPanel>
+                        </AccordionItem>)}
+                </Accordion>
             </div>
         )
     };

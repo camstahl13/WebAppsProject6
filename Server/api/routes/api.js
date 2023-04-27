@@ -170,18 +170,4 @@ router.get('/Catalog', async (req, res) => {
   }
 });
 
-router.get('/help', function(req, res){
-  const fs = require('fs');
-
-  // Read JSON data from file
-  const jsonData = fs.readFileSync(require('path').resolve(__dirname,'../public/docs.json'));
-
-  // Parse JSON data
-  const calls = JSON.parse(jsonData);
-
-  // Do something with the data
-  res.render('api', { calls });
-  fs.close();
-});
-
 module.exports = router;
