@@ -108,6 +108,24 @@ router.get('/plan/:plan_id', checkSession, async (req, res) => {
 });
 
 
+//get plans
+
+const getPlans = `select plan_id, planname, catalog_year, default_ as "default" from ljc_plan where username=?;`
+
+router.get('/plans', checkSession, async (req, res) => {
+  console.log("API request: Get plans");
+
+  const db = makeDB();
+  try {
+    // Get the planned years and courses from the database
+    const plans = await db.query(getPlans, [req.session.username]);
+    res.status(200).send(plans);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
+
 //get get Heading URI -> /api/heading
 
 const getHeadingQuery = `
