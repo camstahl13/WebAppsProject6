@@ -1,5 +1,6 @@
 import React, { useContext, createContext, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
+const App = require('../App');
 
 const authContext = createContext();
 

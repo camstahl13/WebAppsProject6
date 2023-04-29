@@ -4,8 +4,11 @@ import { useAuth } from '../services/AuthService';
 import { Accordion, AccordionItem, AccordionItemButton, AccordionItemPanel, AccordionItemHeading} 
     from 'react-accessible-accordion';
 import Draggable, {DraggableCore} from 'react-draggable';
+import CreatePlan from './create.js';
+import ManagePlan from './manage.js';
+import Catalog from './catalog.js';
 
-function Singout() {
+function Signout() {
     let nav = useNavigate();
     let auth = useAuth();
 
@@ -25,7 +28,7 @@ function Singout() {
 class APE_Header extends Component {
     constructor(props) {
         super(props);
-        this.state = { apiResponse: "", heading: {} };
+        this.state = { apiResponse: "", heading: {}, majors: {}, minors: {}, catayears: {}, plans: {} };
     }
 
     async callAPI() {
@@ -35,12 +38,38 @@ class APE_Header extends Component {
             .then(res => this.setState({ heading: res[0] }));
     }
 
+    //LUKE ADDED
+    async getMajors() {
+        await fetch("http://localhost:3001/api/majors", { method: 'GET'})
+            .then(res => res.json())
+            .then(res => this.setState({majors: res}));
+    }
+
+    async getMinors() {
+        await fetch("http://localhost:3001/api/minors", { method: 'GET'})
+            .then(res => res.json())
+            .then(res => this.setState({minors: res}));
+    }
+
+    async getYears() {
+        await fetch("http://localhost:3001/api/years", { method: 'GET'})
+            .then(res => res.json())
+            .then(res => this.setState({catayears: res}));
+    }
+
+    async getPlans() {
+        await fetch("http://localhost:3001/api/manageplan", {method: 'GET'})
+            .then(res => res.json())
+            .then(res => this.setState({plans: res}));
+    }
+    //END LUKE ADDED
+
     componentDidMount() {
         this.callAPI();
-<<<<<<< HEAD
-
-=======
->>>>>>> main
+        this.getMajors();
+        this.getMinors();
+        this.getYears();
+        this.getPlans();
     }
 
     render() {
@@ -69,12 +98,12 @@ class APE_Header extends Component {
                         </li>
                     </ul>
                     <div id="actions">
-                        <Singout />
+                        <Signout />
                         <div className="dropdown btt-primary">
                             <span>Options</span>
                             <div className="dropdown-content shadow">
-                                <p id="create">Create Plan</p>
-                                <p id="manage">Manage Plan</p>
+                                <CreatePlan majors={this.state.majors} minors={this.state.minors} years={this.state.catayears}/>
+                                <ManagePlan plans={this.state.plans}/>
                                 <p>Print</p>
                                 <p>Show Grades</p>
                                 <p>Wavers</p>
@@ -167,11 +196,11 @@ class TR extends Component {
                     <h1>Academic Plan</h1>
                 </div>
                 <ul id="aca-plan">
-                    <li class="scheduled">
-                        <p class="sem">{plan[0] ? plan[0].year : 'N/A'}</p>
-                        <p class="hours text-secondary">Hours: 20</p>
-                        <div class="sem-courses">
-                            <ul class="course-list">
+                    <li className="scheduled">
+                        <p className="sem">{plan[0] ? plan[0].year : 'N/A'}</p>
+                        <p className="hours text-secondary">Hours: 20</p>
+                        <div className="sem-courses">
+                            <ul className="course-list">
                                 <li draggable="true">BTGE-1725 Bible &amp; the Gospel</li>
                                 <li draggable="true">COM-1100 Fundamentals of Speech</li>
                                 <li draggable="true">CS-1210 C++ Programming</li>
@@ -196,26 +225,7 @@ class BL extends Component {
                 <div className="sec-header">
                     <h1>Validation Status</h1>
                 </div>
-                <form id="kbb">
-                    <div>
-                        <label htmlFor="year">Year:</label>
-                        <select name="year" id="year"></select>
-                    </div>
-                    <div>
-                        <label htmlFor="make">Make:</label>
-                        <select name="make" id="make"></select>
-                    </div>
-                    <div>
-                        <label htmlFor="model">Model:</label>
-                        <select name="model" id="model"></select>
-                    </div>
-                </form>
-                <div className="badge-link">
-                    <a href="../../cs3220.html">Luke's Home</a>
-                    <a href="../../../~jcarpen/cs3220.html">Josiah's Home</a>
-                    <a href="../../../~stahlma/cs3220.html">Campbell's Home</a>
-                    <a href="../../../index.php">Course Home</a>
-                </div>
+                <p>Yo zafo</p>
             </div>
         )
     };
@@ -223,22 +233,39 @@ class BL extends Component {
 }
 
 class BR extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { catalog: [], visible: false };
+    }
+
+    async getCatalog() {
+        await fetch("http://localhost:3001/api/Catalog", { method: 'GET' })
+            .then(res => res.json())
+            .then(res => this.setState({ catalog: res }));
+    }
+
+    componentDidMount() {
+        this.getCatalog();
+    }
+
     render() {
         return (
             <div id="BR">
-                <span id="bar"></span>
+                <span id="bar" draggable></span>
                 <div className="sec-header to-col">
                     <h1>Course Finder</h1>
                     <div id="toggleswitch">
-                        <input type="checkbox" />
-                        <h1>Check box to hide Send Advisor form</h1>
+                        <input type="checkbox" onClick={(e) => {
+                            this.setState({visible: !this.state.visible});
+                        }}/>
+                        <h1>{this.state.visible? "Uncheck box to show Send Advisor form" : "Check box to hide the Catalog"}</h1>
                     </div>
                     <form action="http://judah.cedarville.edu/echo.php" target="_blank" id="coursesearch">
                         <label htmlFor="placeholder">Enter Course: </label>
                         <input type="text" name="placeholder" />
                     </form>
                 </div>
-                <form action="http://judah.cedarville.edu/echo.php" target="_blank" className="advisorform" id="submitbutton">
+                <form action="http://judah.cedarville.edu/echo.php" target="_blank" className={this.state.visible? "advisorform" : "dropdown-content"} id="submitbutton" display="none">
                     <p>
                         <label htmlFor="email" id="emaillabel">Email: </label>
                         <input type="text" name="email" id="email" size='30' />
@@ -265,20 +292,8 @@ class BR extends Component {
                         <input type="submit" value="Send this plan to my advisor" />
                     </p>
                 </form>
-                <div id="catalog" hidden={true}>
-                    <table id="coursefinder">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>ID</th>
-                                <th>Description</th>
-                                <th>Credits</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                        </tbody>
-                    </table>
+                <div id="catalog" hidden={this.state.visible? true : false}>
+                    <Catalog courses={this.state.catalog.length == 0 ? "Loading courses..." : this.state.catalog} />
                 </div>
             </div>
         )
