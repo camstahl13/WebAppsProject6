@@ -38,11 +38,14 @@ function CreatePlan(props) {
             select.className = "modalInput";
             select.name = s[2];
             select.id = s[2];
-            for (let dt of s[3].message) {
-                let option = document.createElement('option');
-                option.value = dt.major_id != null ? dt.major : dt.minor_id != null? dt.minor : dt.catalog_year;
-                option.text = option.value;
-                select.appendChild(option);
+            
+            if (Object.keys(s[3]).length > 0) {
+                for (let dt of s[3].message) {
+                    let option = document.createElement('option');
+                    option.value = dt.major_id != null ? dt.major : dt.minor_id != null? dt.minor : dt.catalog_year;
+                    option.text = option.value;
+                    select.appendChild(option);
+                }
             }
 
             let label = document.createElement('label');

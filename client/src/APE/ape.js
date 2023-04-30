@@ -246,6 +246,15 @@ class BR extends Component {
 
     componentDidMount() {
         this.getCatalog();
+        document.getElementById("bar").addEventListener("drag", (e)=>{
+            if (e.clientY != 0) document.getElementById("main").style.gridTemplateRows = "max(170px, calc(100vh - 80px - " +  "max(210px, calc(100vh - " + e.clientY + "px)))) auto"
+            let a = window.innerHeight;
+			let c = document.getElementsByTagName("header")[0].offsetHeight;
+			let d = document.getElementById("TR").offsetHeight;
+			let f = document.getElementsByClassName("sec-header")[0].offsetHeight;
+			let letssee = a-(c+d+f);
+			document.getElementById("catalog").setAttribute("style", `height: ${letssee - 23}px`);
+        });
     }
 
     render() {
@@ -260,10 +269,6 @@ class BR extends Component {
                         }}/>
                         <h1>{this.state.visible? "Uncheck box to show Send Advisor form" : "Check box to hide the Catalog"}</h1>
                     </div>
-                    <form action="http://judah.cedarville.edu/echo.php" target="_blank" id="coursesearch">
-                        <label htmlFor="placeholder">Enter Course: </label>
-                        <input type="text" name="placeholder" />
-                    </form>
                 </div>
                 <form action="http://judah.cedarville.edu/echo.php" target="_blank" className={this.state.visible? "advisorform" : "dropdown-content"} id="submitbutton" display="none">
                     <p>

@@ -19,11 +19,13 @@ function ManagePlan(props) {
         toptr.innerHTML="<th>Plan</th><th>Major</th><th>Minor</th><th>Default</th><th>Catalog</th>"
         tbody.appendChild(toptr);
         
-        for (let p of props.plans.message) {
-            let tr = document.createElement('tr');
-            tr.className="planitem";
-            tr.innerHTML=`<td>${p.plan_id}</td><td>${p.planname}</td><td>${p.username}</td><td>${p.catalog_year}</td><td>${p.default_}</td>`;
-            tbody.appendChild(tr);
+        if (props.plans) {
+            for (let p of props.plans.message) {
+                let tr = document.createElement('tr');
+                tr.className="planitem";
+                tr.innerHTML=`<td>${p.plan_id}</td><td>${p.planname}</td><td>${p.username}</td><td>${p.catalog_year}</td><td>${p.default_}</td>`;
+                tbody.appendChild(tr);
+            }
         }
         
         table.appendChild(tbody);

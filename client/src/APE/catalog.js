@@ -1,22 +1,25 @@
-import { listenerCount } from 'jsdom/lib/jsdom/virtual-console';
 import React from 'react';
 function Catalog(props) {
+
+    let tbody = [];
     
     const [search, setSearch] = React.useState('');
     const handleSearch = (e) => {
         setSearch(e.target.value);
+        tbody.filter((item) => {
+            for (let td of item.props.children) {
+                if (td.props.children.toString().toLowerCase().includes(e.target.value.toLowerCase())) {
+                    document.getElementsByClassName(item.props.class)[0].setAttribute("style","display: table-row");
+                    return true;
+                }
+            }
+            document.getElementsByClassName(item.props.class)[0].setAttribute("style","display: none");
+        });
     }
-
-    const data = {
-        //nodes: list.filter((item) => item.name.toLowerCase().includes(search.toLowerCase())),
-        //I'm trying to implement search/filter
-    };
-
-    let tbody = [];
     
     if (props.courses.catalog != null) {
         for (let item of props.courses.catalog) {
-            tbody.push(<tr>
+            tbody.push(<tr class={item.course_id}>
                 <td>{item.course_id}</td>
                 <td>{item.title}</td>
                 <td>{item.description}</td>
@@ -29,6 +32,10 @@ function Catalog(props) {
     }
     
     return(<>
+        <label htmlFor="search">
+            Search: 
+            <input id="search" type="text" onChange={handleSearch} />
+        </label>
         <table id="coursefinder">
             <thead>
                 <tr>
