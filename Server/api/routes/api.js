@@ -158,8 +158,21 @@ router.get('/heading', checkSession, async (req, res) => {
 
 
 //Get Catalog URI -> /api/catalog
-router.get('/Catalog', async (req, res) => {
-  console.log("API REQEST -> heading, Username - " + req.session.username);
+router.get('/Catalog/:year', async (req, res) => {
+  console.log("API REQEST -> Catalog, Username - " + req.session.username);
+
+  try {
+    res.status(418).send({ message: "METHOD NOT IMPLEMENTED" });
+  }
+  catch (err) {
+    console.error(err);
+    res.status(500).send(err);
+  }
+});
+
+//Get Catalog URI -> /api/catalog
+router.get('/requirments', async (req, res) => {
+  console.log("API REQEST -> Get requirement, Username - " + req.session.username);
 
   try {
     res.status(418).send({ message: "METHOD NOT IMPLEMENTED" });

@@ -37,10 +37,6 @@ class APE_Header extends Component {
 
     componentDidMount() {
         this.callAPI();
-<<<<<<< HEAD
-
-=======
->>>>>>> main
     }
 
     render() {
@@ -167,11 +163,11 @@ class TR extends Component {
                     <h1>Academic Plan</h1>
                 </div>
                 <ul id="aca-plan">
-                    <li class="scheduled">
-                        <p class="sem">{plan[0] ? plan[0].year : 'N/A'}</p>
-                        <p class="hours text-secondary">Hours: 20</p>
-                        <div class="sem-courses">
-                            <ul class="course-list">
+                    <li className="scheduled">
+                        <p className="sem">{plan[0] ? plan[0].year : 'N/A'}</p>
+                        <p className="hours text-secondary">Hours: 20</p>
+                        <div className="sem-courses">
+                            <ul className="course-list">
                                 <li draggable="true">BTGE-1725 Bible &amp; the Gospel</li>
                                 <li draggable="true">COM-1100 Fundamentals of Speech</li>
                                 <li draggable="true">CS-1210 C++ Programming</li>
