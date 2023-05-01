@@ -37,10 +37,6 @@ class APE_Header extends Component {
 
     componentDidMount() {
         this.callAPI();
-<<<<<<< HEAD
-
-=======
->>>>>>> main
     }
 
     render() {
@@ -93,33 +89,23 @@ class APE_Header extends Component {
 class TL extends Component {
     constructor(props) {
 		super(props);
-		this.state = { requirements: [] };
 	}
-
-    componentDidMount() {
-        this.getRequirements();
-    }
 
     eventHandler (e, data) {
         console.log('Event Type', e.type);
         console.log({e, data});
       }
 
-    async getRequirements() {
-        await fetch("http://localhost:3001/api/requirements", {method: 'GET', credentials: "include"})
-            .then(res => res.json())
-            .then(res => this.setState({ requirements: res.categories }));
-    }
-
     render() {
+        console.log(this.props.catalog);
         return (
             <div id="TL">
                 <div className="sec-header">
                     <h1>Requirements</h1>
                 </div>
                 <Accordion allowZeroExpanded>
-                    {this.state.requirements &&
-                    Object.keys(this.state.requirements).map(category =>
+                    {this.props.requirements &&
+                    Object.keys(this.props.requirements).map(category =>
                         <AccordionItem>
                             <AccordionItemHeading>
                                 <AccordionItemButton>
@@ -128,8 +114,10 @@ class TL extends Component {
                             </AccordionItemHeading>
                             <AccordionItemPanel>
                                 <ul className="reqcat">
-                                    {this.state.requirements[category].courses.map(course =>
-                                            <li key={course} className="reqcourse">{course}</li>)}
+                                    {this.props.requirements[category].map((course, i) =>
+                                            <Course idx={i}
+                                                course_id={this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "CS-0000"}
+                                                course_name={this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Name unknown"}></Course>)}
                                 </ul>
                             </AccordionItemPanel>
                         </AccordionItem>)}
@@ -137,56 +125,102 @@ class TL extends Component {
             </div>
         )
     };
+}
 
+class Course extends Component {
+    constructor(props) {
+		super(props);
+	}
+
+    render() {
+        return (
+            <li draggable key={this.props.course_id} className="reqcourse">{this.props.course_id} {this.props.course_name}</li>
+        )
+    }
 }
 //TODO - FINISH THIS, right now it just bare bones on how to get data from api and use it
+
+
 class TR extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { plan: [] };
     }
 
-    async callAPI() {
-        //Get User Plan
-        await fetch("http://localhost:3001/api/plan/106", { method: 'GET', credentials: "include" })
-            .then(res => res.json())
-            .then(res => this.setState({ plan: res }));
+    isScheduled(year, semester, current_year, current_semester) {
+        return (current_year > year
+                    || (current_year == year
+                            && (current_semester == "FA"
+                                    || (current_semester == "SU"
+                                            && semester != "FA")
+                                    || (current_semester == "SP"
+                                            && semester == "SP")))) ? "scheduled" : "unscheduled";
     }
 
-    componentDidMount() {
-        this.callAPI();
+    sumCredits(courses) {
+        let credits = 0;
+        for (let course of courses) {
+            if (this.props.catalog.courses[course]) {
+                credits += this.props.catalog.courses[course].credits;
+            }
+        }
+        return credits;
+    }
 
+    sumAllCredits() {
+        let credits = 0;
+        for (let year of this.props.schedule) {
+            for (let semester of year.semesters) {
+                for (let course of semester.courses) {
+                    if (this.props.catalog.courses[course]) {
+                        credits += this.props.catalog.courses[course].credits;
+                    }
+                }
+            }
+        }
+        return credits;
     }
 
     render() {
-        const { plan } = this.state;
+        console.log(this.props);
         return (
             <div id="TR" className="aca-panel">
                 <div className="sec-header">
-                    <h1>Academic Plan</h1>
+                    <h1>Academic Plan {this.sumAllCredits()} creds</h1>
                 </div>
                 <ul id="aca-plan">
-                    <li class="scheduled">
-                        <p class="sem">{plan[0] ? plan[0].year : 'N/A'}</p>
-                        <p class="hours text-secondary">Hours: 20</p>
-                        <div class="sem-courses">
-                            <ul class="course-list">
-                                <li draggable="true">BTGE-1725 Bible &amp; the Gospel</li>
-                                <li draggable="true">COM-1100 Fundamentals of Speech</li>
-                                <li draggable="true">CS-1210 C++ Programming</li>
-                                <li draggable="true">CS-3610 Database Org &amp; Design</li>
-                                <li draggable="true">CY-3420 Cyber Defense</li>
-                                <li draggable="true">EGCP-4310 Computer Networks</li>
-                                <li draggable="true">MATH-3760 Numerical Analysis</li>
-                            </ul>
-                        </div>
-                    </li>
+                    {this.props.schedule.map((year_schedule, i) => {
+                        {console.log("in map", i)}
+                        return (
+                            <li key={i} className="year">
+                                <ul className="semesters">
+                                    {year_schedule.semesters.map((semester_schedule, i) => {
+                                        return (
+                                            <li key={i} className={this.isScheduled(year_schedule.year, semester_schedule.semester, this.props.current_year, this.props.current_semester)}>
+                                                <p className="sem">{semester_schedule.semester + " " + year_schedule.year}</p>
+                                                <p className="hours text-secondary">{this.sumCredits(semester_schedule.courses)}</p>
+                                                <div className="sem-courses">
+                                                    <ul className="course-list">
+                                                        {semester_schedule.courses.map((course, i) => {
+                                                            return (
+                                                                <li key={i} draggable="true">
+                                                                    {this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "XX-0000"} {this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Unknown name"}
+                                                                </li>
+                                                            )
+                                                        })}
+                                                    </ul>
+                                                </div>
+                                            </li>
+                                        )
+                                    })}
+                                </ul>
+                            </li>
+                        )
+                    })}
                 </ul>
             </div>
         )
     };
-
 }
 
 class BL extends Component {

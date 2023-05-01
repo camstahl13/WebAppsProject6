@@ -29,7 +29,7 @@
 .aca-panel > ul {
   overflow-y: scroll;
   overflow-anchor: none;
-  display: flex;
+  display: grid;
   flex-wrap: wrap;
   height: calc(100% - 42px);
   padding: 0;
@@ -38,18 +38,15 @@
   box-sizing: border-box;
   margin-top: 2.5em;
 }
-.aca-panel > ul > li {
-  overflow: hidden;
+.year {
   list-style: none;
   border-radius: 0.5em;
-  padding: 0.5rem;
-  margin: 0.5rem;
-  max-width: calc(33.3333333333% - 1rem);
-  width: 100%;
-  min-height: 150px;
+  margin: 0.3rem;
+  max-width: 100%;
+  width: -webkit-fill-available;
+  min-height: 200px;
   color: white;
   box-sizing: border-box;
-  background-color: #181b23;
 }
 
 .cf-panel h2 {
@@ -300,9 +297,9 @@ main > div .sec-header form.input {
   }
 }
 @media screen and (max-width: 1200px) {
-  .aca-panel > ul > li {
-    max-width: calc(50% - 1rem);
-    width: 100%;
+  .year {
+    max-width: 100%;
+    width: -webkit-fill-available;
     min-height: 150px;
     min-width: 300px;
   }
@@ -448,6 +445,13 @@ button.disabled {
   color: darkgray;
 }
 
+.scheduled, .unscheduled {
+  margin: 0px 5px 0px 5px;
+  background-color: #181b23;
+  padding: 10px;
+  border-radius: 20px;
+}
+
 .unscheduled {
   background-image: linear-gradient(45deg, #6a337a, rgba(255, 0, 0, 0.431372549)) !important;
 }
@@ -456,7 +460,7 @@ button.disabled {
   letter-spacing: 0.1em;
 }
 .unscheduled .sem, .scheduled .sem {
-  margin: -5px;
+  margin: 0px;
   float: left;
   font-weight: bold;
   color: darkgrey;
@@ -723,7 +727,7 @@ ul.reqcat {
   list-style-type: none;
   padding: 5px;
   margin: 0px;
-  font-size: 0.7em;
+  font-size: 0.9em;
 }
 
 li.reqcourse {
@@ -734,4 +738,19 @@ li.reqcourse {
 li.reqcourse:hover {
   background-color: #ffffff3b;
   cursor: pointer;
+}
+
+.semesters {
+  display: grid;
+  grid-template-columns: 33% 34% 33%;
+  height: 100%;
+}
+
+.aca-panel ul {
+  list-style-type: none;
+  padding: 5px;
+}
+
+.sem-courses {
+  margin-top:5px;
 }
