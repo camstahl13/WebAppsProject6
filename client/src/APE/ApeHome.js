@@ -134,7 +134,7 @@ class ApeHome extends Component {
     }
 
     async get(obj) {
-        await fetch(`http://localhost:3001/api/${obj}/${this.props.selected_plan}`, 
+        await fetch(`http://localhost:3001/api/${obj}/${this.props.plan_id}`, 
                 {method: 'GET', credentials: "include"})
             .then(res => res.json())
             .then(res => this.setState({ [obj]: res }));
@@ -161,7 +161,8 @@ class ApeHome extends Component {
                     current_year={this.state.current_year}
                     curent_semester={this.state.current_semester}
                     catalog_year={this.state.catalog_year}
-                    catalog={this.state.catalog} />
+                    catalog={this.state.catalog}
+                    plan_id={this.state.plan_id} />
                 <BL />
                 <BR catalog={this.state.catalog}/>
             </>

@@ -5,8 +5,29 @@ class TR extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            shownotes: false
+            shownotes: false,
+            studentnotes: null,
+            facultynotes: null
         }
+    }
+    
+    componentDidMount() {
+    }
+
+    async getNotes() {
+        await fetch(`http://localhost:3001/api/notes/${this.props.plan_id}`, 
+                {method: 'GET', credentials: "include"})
+            .then(res => res.json())
+            .then(res => {
+                if (res.studentnotes) {
+                    this.setState({ studentnotes : res.studentnotes });
+                } else {
+                    this.setState({ studentnotes: ""});
+                }
+                if (res.facultynotes) {
+                    this.setState({ facultynotes : res.facultynotes });
+                }
+            });
     }
 
     isScheduled(year, semester, current_year, current_semester) {
@@ -103,12 +124,29 @@ class TR extends Component {
         }
     }
 
-    openNotes() {
-        return;
+    saveNotes() {
+        let res = {};
+        if (this.state.studentnotes) {
+            res.studentnotes = this.state.studentnotes;
+        }
+        if (this.state.facultynotes) {
+            res.facultynotes = this.state.facultynotes;
+        }
+        fetch(`http://localhost:3001/api/notes/${this.props.plan_id}`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify(res)
+        });
     }
 
     render() {
-        console.log(this.props);
+        /*
+        if (this.state.studentnotes == null){
+            this.getNotes();
+        }
+        */
+
         return (
             <div id="TR" className="aca-panel">
                 <div className="sec-header">
@@ -116,7 +154,6 @@ class TR extends Component {
                 </div>
                 <ul id="aca-plan">
                     {this.props.schedule.map((year_schedule, i) => {
-                        {console.log("in map", i)}
                         return (
                             <li key={i} className="year">
                                 <ul className="semesters">
@@ -131,7 +168,6 @@ class TR extends Component {
                                                     e.preventDefault();
                                                 }}
                                                 onDrop={(e) => {
-                                                    console.log(e.dataTransfer.getData("text/plain"));
                                                     this.addCourse(year_schedule.year, semester_schedule.semester, e.dataTransfer.getData("text/plain"))
                                                 }}>
                                                 <p className="sem">{semester_schedule.semester + " " + (year_schedule.year + (semester_schedule.semester == "FA" ? 0 : 1))}</p>
@@ -159,7 +195,7 @@ class TR extends Component {
                     })}
                     <div id="acabuttonpanel">
                         <button onClick={(e) => { this.addYear() }} className="acabutton">Add Year</button>
-                        <button onClick={(e) => { this.setState({ shownotes: true }) }} className="acabutton">Open Notes</button>
+                        <button onClick={(e) => { this.getNotes(); this.setState({ shownotes: true }) }} className="acabutton">Open Notes</button>
                         <button onClick={(e) => { this.removeYear() }} className="acabutton">Remove Year</button>
                     </div>
                     {this.state.shownotes ?
@@ -169,17 +205,27 @@ class TR extends Component {
                                     <h3>Edit Plan Notes</h3>
                                 </div>
                                 <div className="notes-body">
-                                    <label className="notes-label">Student Notes</label>
-                                    <textarea id="studentnotes" rows="15" cols="75">
-                                        Load this from this.props.student_notes probably
-                                    </textarea>
-                                    <label className="notes-label">Faculty Notes</label>
-                                    <textarea id="facultynotes" rows="15" cols="75">
-                                        Load this from this.props.student_notes probably
-                                    </textarea>
+                                    {this.state.studentnotes &&
+                                    <>
+                                        <label className="notes-label">Student Notes</label>
+                                        <textarea id="studentnotes" rows="15" cols="75" 
+                                            onChange={(e) => { this.setState({ studentnotes: e.target.value }) }}
+                                            defaultValue={this.state.studentnotes}>
+                                        </textarea>
+                                    </>
+                                    }
+                                    {this.state.facultynotes &&
+                                    <>
+                                        <label className="notes-label">Faculty Notes</label>
+                                        <textarea id="facultynotes" rows="15" cols="75"
+                                            onChange={(e) => { this.setState({ facultynotes: e.target.value })}}
+                                            defaultValue={this.state.facultynotes}>
+                                        </textarea>
+                                    </>
+                                    }
                                 </div>
                                 <div className="notes-footer">
-                                    <button className="notes-close" onClick={(e) => { this.setState({ shownotes: false }) }}>Save and Close</button>
+                                    <button className="notes-close" onClick={(e) => { this.setState({ shownotes: false }); this.saveNotes(); }}>Save and Close</button>
                                 </div>
                             </div>
                         </div> : null }

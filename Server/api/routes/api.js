@@ -260,6 +260,17 @@ router.get('/years',async (req,res) => {
 router.post('/schedule/:plan',async (req,res) => {
   res.status(200).send({message: req.body});
 });
+
+router.get('/notes/:plan',async (req,res) => {
+  res.status(200).send({
+    studentnotes: "Here are example student notes",
+    facultynotes: "Here are example faculty notes"
+  });
+});
+
+router.post('/notes/:plan',async (req,res) => {
+  res.status(200).send({message: req.body});
+});
 //END ADDED BY LUKE
 
 module.exports = router;
