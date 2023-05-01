@@ -17,6 +17,11 @@
   font-family: moon-bold;
   src: url(68ec80129af65941142c.otf) format("woff2");
 }
+
+html {
+  height: 100%;
+}
+
 .aca-panel {
   position: relative;
   max-height: calc(100vh - 280px);
@@ -364,7 +369,7 @@ button.disabled {
 }
 
 .advisorform p {
-    margin-top: 5px;
+    margin-top: 0px;
     margin-bottom: 5px;
 }
 
