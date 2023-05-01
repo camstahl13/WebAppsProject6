@@ -149,14 +149,13 @@ class ApeHome extends Component {
                 <TR schedule={this.state.schedule} 
                     setSchedule={(sched) => {
                         this.setState({ schedule: sched });
+                        let res = { schedule: sched };
 
-                        fetch('http://localhost:3001/api/schedule/${plan.id}', {
+                        fetch(`http://localhost:3001/api/schedule/${this.state.plan_id}`, {
                             method: 'POST',
                             credentials: 'include',
                             headers: {'Content-Type':'application/json'},
-                            body: {
-                            "schedule": this.state.schedule
-                            }
+                            body: JSON.stringify(res)
                         });
                     }}
                     current_year={this.state.current_year}

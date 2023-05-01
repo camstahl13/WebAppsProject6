@@ -19,6 +19,8 @@ const checkSession = (req, res, next) => {
   next();
 };
 
+router.use(express.json());
+
 
 //TEST URI -> /api/test
 router.get('/test', function (req, res) {
@@ -253,6 +255,10 @@ router.get('/years',async (req,res) => {
   const db = makeDB();
   const years = await db.query("select * from ljc_catayear");
   res.status(200).send({message: years});
+});
+
+router.post('/schedule/:plan',async (req,res) => {
+  res.status(200).send({message: req.body});
 });
 //END ADDED BY LUKE
 

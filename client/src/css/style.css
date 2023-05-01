@@ -42,6 +42,7 @@ html {
   margin-bottom: 2em;
   box-sizing: border-box;
   margin-top: 2.5em;
+  min-width: 750px;
 }
 .year {
   list-style: none;
@@ -773,4 +774,101 @@ li.reqcourse:hover {
 .remcourse {
   display: none;
   float: right;
+}
+
+#acabuttonpanel {
+  text-align: center;
+  margin: 15px 0px 5px 0px;
+}
+
+.acabutton {
+  margin: 0em 2em;
+  width: 15%;
+  min-width: 8em;
+  background-color:#ad7300;
+  height: 2em;
+  border: 2px solid #ffffff66;
+  border-radius: 5px;
+  font-family: "system-ui";
+  font-style: italic;
+  font-size: 1em;
+}
+
+.acabutton:hover {
+  cursor: pointer;
+  background-color: #ffab00;
+}
+
+.notes {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+  z-index: 100;
+}
+
+.notes-content {
+  width: fit-content;
+  background-color: #fff;
+  border: 2px solid black;
+  border-radius: 5%;
+  font-family: system-ui;
+}
+
+.notes-header > h3 {
+  margin-block-start: 0;
+  margin-block-end: 0;
+  text-align: center;
+}
+
+.notes-footer {
+  text-align: center;
+}
+
+.notes-header, .notes-footer {
+  padding: 10px;
+}
+
+.notes-title {
+  margin: 0px;
+}
+
+.notes-close {
+  background-color: #0064bb;
+  border-radius: 10px;
+  color: white;
+  border: 2px solid black;
+  padding: 5px;
+  font-size: medium;
+}
+
+.notes-close:hover {
+  background-color: #36a2ff;
+  cursor: pointer;
+}
+
+.notes-body {
+  padding: 10px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  width: min-content;
+}
+
+.notes-label {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.notes-body > textarea {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  background-color: #181b23;
+  color: white;
+  resize: vertical;
 }
