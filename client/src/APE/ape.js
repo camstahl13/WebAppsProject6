@@ -1,8 +1,6 @@
 import { Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/AuthService';
-import { Accordion, AccordionItem, AccordionItemButton, AccordionItemPanel, AccordionItemHeading} 
-    from 'react-accessible-accordion';
 import Draggable, {DraggableCore} from 'react-draggable';
 import CreatePlan from './create.js';
 import ManagePlan from './manage.js';
@@ -119,142 +117,8 @@ class APE_Header extends Component {
     };
 }
 
-class TL extends Component {
-    constructor(props) {
-		super(props);
-	}
-
-    eventHandler (e, data) {
-        console.log('Event Type', e.type);
-        console.log({e, data});
-      }
-
-    render() {
-        console.log(this.props.catalog);
-        return (
-            <div id="TL">
-                <div className="sec-header">
-                    <h1>Requirements</h1>
-                </div>
-                <Accordion allowZeroExpanded>
-                    {this.props.requirements &&
-                    Object.keys(this.props.requirements).map(category =>
-                        <AccordionItem>
-                            <AccordionItemHeading>
-                                <AccordionItemButton>
-                                    {category}
-                                </AccordionItemButton>
-                            </AccordionItemHeading>
-                            <AccordionItemPanel>
-                                <ul className="reqcat">
-                                    {this.props.requirements[category].map((course, i) =>
-                                            <Course idx={i}
-                                                course_id={this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "CS-0000"}
-                                                course_name={this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Name unknown"}></Course>)}
-                                </ul>
-                            </AccordionItemPanel>
-                        </AccordionItem>)}
-                </Accordion>
-            </div>
-        )
-    };
-}
-
-class Course extends Component {
-    constructor(props) {
-		super(props);
-	}
-
-    render() {
-        return (
-            <li draggable key={this.props.course_id} className="reqcourse">{this.props.course_id} {this.props.course_name}</li>
-        )
-    }
-}
 //TODO - FINISH THIS, right now it just bare bones on how to get data from api and use it
 
-
-class TR extends Component {
-
-    constructor(props) {
-        super(props);
-    }
-
-    isScheduled(year, semester, current_year, current_semester) {
-        return (current_year > year
-                    || (current_year == year
-                            && (current_semester == "FA"
-                                    || (current_semester == "SU"
-                                            && semester != "FA")
-                                    || (current_semester == "SP"
-                                            && semester == "SP")))) ? "scheduled" : "unscheduled";
-    }
-
-    sumCredits(courses) {
-        let credits = 0;
-        for (let course of courses) {
-            if (this.props.catalog.courses[course]) {
-                credits += this.props.catalog.courses[course].credits;
-            }
-        }
-        return credits;
-    }
-
-    sumAllCredits() {
-        let credits = 0;
-        for (let year of this.props.schedule) {
-            for (let semester of year.semesters) {
-                for (let course of semester.courses) {
-                    if (this.props.catalog.courses[course]) {
-                        credits += this.props.catalog.courses[course].credits;
-                    }
-                }
-            }
-        }
-        return credits;
-    }
-
-    render() {
-        console.log(this.props);
-        return (
-            <div id="TR" className="aca-panel">
-                <div className="sec-header">
-                    <h1>Academic Plan {this.sumAllCredits()} creds</h1>
-                </div>
-                <ul id="aca-plan">
-                    {this.props.schedule.map((year_schedule, i) => {
-                        {console.log("in map", i)}
-                        return (
-                            <li key={i} className="year">
-                                <ul className="semesters">
-                                    {year_schedule.semesters.map((semester_schedule, i) => {
-                                        return (
-                                            <li key={i} className={this.isScheduled(year_schedule.year, semester_schedule.semester, this.props.current_year, this.props.current_semester)}>
-                                                <p className="sem">{semester_schedule.semester + " " + year_schedule.year}</p>
-                                                <p className="hours text-secondary">{this.sumCredits(semester_schedule.courses)}</p>
-                                                <div className="sem-courses">
-                                                    <ul className="course-list">
-                                                        {semester_schedule.courses.map((course, i) => {
-                                                            return (
-                                                                <li key={i} draggable="true">
-                                                                    {this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "XX-0000"} {this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Unknown name"}
-                                                                </li>
-                                                            )
-                                                        })}
-                                                    </ul>
-                                                </div>
-                                            </li>
-                                        )
-                                    })}
-                                </ul>
-                            </li>
-                        )
-                    })}
-                </ul>
-            </div>
-        )
-    };
-}
 
 class BL extends Component {
     render() {
@@ -343,4 +207,4 @@ class BR extends Component {
     };
 }
 
-export { APE_Header, TL, TR, BL, BR };
+export { APE_Header, BL, BR };

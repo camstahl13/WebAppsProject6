@@ -1,10 +1,24 @@
 import { Component } from 'react';
-import { TL, TR, BL, BR } from './ape.js';
+import { BL, BR } from './ape.js';
+import { TR } from './TR.js';
+import { TL } from './TL.js';
 
 class ApeHome extends Component {
     constructor(props) {
 		super(props);
-		this.state = { selected_plan: null, requirements: {}, catalog: {}, plan: { schedule: [] } };
+		this.state = { 
+            requirements: {}, 
+            catalog: {},
+            plan_id: null,
+            plan_name: null,
+            student: null,
+            majors: [],
+            minors: [],
+            current_year: null,
+            current_semester: null,
+            catalog_year: null,
+            schedule: []
+        };
 	}
 
     componentDidMount() {
@@ -20,69 +34,60 @@ class ApeHome extends Component {
             "Cognates": ["CHEM-1050","MATH-1710","MATH-1720","PHYS-2110","PHYS-2120"],
             "GenEds": ["BTGE-1725","BTGE-2730","BTGE-2740","BTGE-3755","BTGE-3765"]
         };
-        const plan = {
-            id: 12345,
-            name: "A Great Plan",
-            student: "Campbell Stahlman",
-            majors: ["Computer Science", "English"],
-            minors: ["Honors", "Literature"],
-            current_year: 2022,
-            current_semester: "SP",
-            catalog_year: 2020,
-            schedule: [
-                {
-                    year: 2020,
-                    semesters: [
-                        {
-                            semester: "FA",
-                            courses: ["CS-1210","CS-1220",]
-                        },
-                        {
-                            semester: "SP",
-                            courses: ["CS-3320"]
-                        },
-                        {
-                            semester: "SU",
-                            courses: []
-                        }
-                    ]
-                },
-                {
-                    year: 2021,
-                    semesters: [
-                        {
-                            semester: "FA",
-                            courses: []
-                        },
-                        {
-                            semester: "SP",
-                            courses: []
-                        },
-                        {
-                            semester: "SU",
-                            courses: []
-                        }
-                    ]
-                },
-                {
-                    year: 2022,
-                    semesters: [
-                        {
-                            semester: "FA",
-                            courses: []
-                        },
-                        {
-                            semester: "SP",
-                            courses: []
-                        },
-                        {
-                            semester: "SU",
-                            courses: ["BTGE-1725"]
-                        }
-                    ]
-                }
-            ]
-        };
+        const sched = [
+            {
+                year: 2020,
+                semesters: [
+                    {
+                        semester: "FA",
+                        courses: ["CS-1210","CS-1220",]
+                    },
+                    {
+                        semester: "SP",
+                        courses: ["CS-3320"]
+                    },
+                    {
+                        semester: "SU",
+                        courses: []
+                    }
+                ]
+            },
+            {
+                year: 2021,
+                semesters: [
+                    {
+                        semester: "FA",
+                        courses: []
+                    },
+                    {
+                        semester: "SP",
+                        courses: []
+                    },
+                    {
+                        semester: "SU",
+                        courses: []
+                    }
+                ]
+            },
+            {
+                year: 2022,
+                semesters: [
+                    {
+                        semester: "FA",
+                        courses: []
+                    },
+                    {
+                        semester: "SP",
+                        courses: []
+                    },
+                    {
+                        semester: "SU",
+                        courses: ["BTGE-1725"]
+                    }
+                ]
+            }
+        ];
+
         const cat = {
             year: 2021,
             courses: {
@@ -114,49 +119,49 @@ class ApeHome extends Component {
         };
         
         this.setState({
-            plan: plan,
+            schedule: sched,
             requirements: reqs,
-            catalog: cat
+            catalog: cat,
+            plan_id: 12345,
+            plan_name: "A Great Plan",
+            student: "Campbell Stahlman",
+            majors: ["Computer Science", "English"],
+            minors: ["Honors", "Literature"],
+            current_year: 2022,
+            current_semester: "SP",
+            catalog_year: 2020,
         });
     }
 
     async get(obj) {
-        await fetch(`http://localhost:3001/api/${obj}/${this.state.selected_plan}`, 
+        await fetch(`http://localhost:3001/api/${obj}/${this.props.selected_plan}`, 
                 {method: 'GET', credentials: "include"})
             .then(res => res.json())
             .then(res => this.setState({ [obj]: res }));
-    }
-
-    setSchedule(sched) {
-        this.setState(prevState => ({
-            ...prevState,
-            plan: {
-                ...prevState.plan,
-                schedule: sched
-            }
-        }));
-
-        fetch('http://localhost:3001/api/schedule/${plan.id}', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {'Content-Type':'application/json'},
-            body: {
-             "schedule": this.state.plan.schedule
-            }
-        });
     }
 
     render() {
         return (
             <>
                 <TL requirements={this.state.requirements}
-                    schedule={this.state.plan.schedule}
+                    schedule={this.state.schedule}
                     catalog={this.state.catalog} />
-                <TR schedule={this.state.plan.schedule} 
-                    setSchedule={this.setSchedule}
-                    current_year={this.state.plan.current_year}
+                <TR schedule={this.state.schedule} 
+                    setSchedule={(sched) => {
+                        this.setState({ schedule: sched });
+
+                        fetch('http://localhost:3001/api/schedule/${plan.id}', {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {'Content-Type':'application/json'},
+                            body: {
+                            "schedule": this.state.schedule
+                            }
+                        });
+                    }}
+                    current_year={this.state.current_year}
                     curent_semester={this.state.current_semester}
-                    catalog_year={this.state.plan.catalog_year}
+                    catalog_year={this.state.catalog_year}
                     catalog={this.state.catalog} />
                 <BL />
                 <BR catalog={this.state.catalog}/>

@@ -264,13 +264,13 @@ main > div .sec-header form.input {
 	background-color: #9a9a9a50;
 }
 
-#accordion .planned label::before {
+.planned::before {
 	content: "\2705";
 	font-size: 0.7em;
 	margin-right: 5px;
 }
 
-#accordion .unplanned label::before {
+.unplanned::before {
 	content: "\1F7E5";
 	font-size: 0.7em;
 	margin-right: 5px;
@@ -305,7 +305,7 @@ main > div .sec-header form.input {
   .year {
     max-width: 100%;
     width: -webkit-fill-available;
-    min-height: 150px;
+    min-height: 200px;
     min-width: 300px;
   }
   #version {
@@ -446,7 +446,6 @@ button.disabled {
 }
 
 .course-list > li:hover {
-  cursor: pointer;
   color: darkgray;
 }
 
@@ -483,6 +482,7 @@ ul.course-list {
 ul.course-list > li {
   margin-top: 0px;
   width: 100%;
+  font-size: 0.9em;
 }
 
 #TR > ul::-webkit-scrollbar-thumb {
@@ -738,6 +738,8 @@ ul.reqcat {
 li.reqcourse {
   border-radius: 5px;
   padding: 0px 5px;
+  font-family: "system-ui";
+  font-size: 1em;
 }
 
 li.reqcourse:hover {
@@ -758,4 +760,17 @@ li.reqcourse:hover {
 
 .sem-courses {
   margin-top:5px;
+}
+
+.course-list li:hover .remcourse {
+  display: inline;
+}
+
+.remcourse:hover {
+  cursor: pointer;
+}
+
+.remcourse {
+  display: none;
+  float: right;
 }
