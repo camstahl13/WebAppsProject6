@@ -1,6 +1,7 @@
 const sha256 = require('../src/sha256');
 const makeDB = require('../db/database');
 var express = require('express');
+const { mainModule } = require('process');
 var router = express.Router();
 
 const unauthorizedMessage = {
@@ -158,16 +159,12 @@ router.get('/heading', checkSession, async (req, res) => {
 
 
 //Get Catalog URI -> /api/catalog
+//LUKE EDITED THIS FUNCTION TO DO STUFF
 router.get('/Catalog', async (req, res) => {
-  console.log("API REQEST -> heading, Username - " + req.session.username);
-
-  try {
-    res.status(418).send({ message: "METHOD NOT IMPLEMENTED" });
-  }
-  catch (err) {
-    console.error(err);
-    res.status(500).send(err);
-  }
+  console.log("Getting catalog...");
+  const db = makeDB();
+  const catalog = await db.query("select * from ljc_course");
+  res.status(200).send({ catalog });
 });
 
 router.get('/help', function(req, res){
@@ -184,16 +181,79 @@ router.get('/help', function(req, res){
   fs.close();
 });
 
-router.get('/requirements', async (req, res) => {
-  console.log("API REQUEST -> heading, username - " + req.session.username);
+//ADDED BY LUKE
+router.post('/createplan', async (req,res) => {
+  //ADD CHECK SESSION!!! (and remove semjaza)
+  const db = makeDB();
+  const semjaza = "semjaza";
+  let {name, createMajor, createMinor, catayear} = req.body;
 
-  try{
-    res.status(400).send({"categories":{"Core":{"courses":["CS-1210","CS-1220","CS-2210","CS-3210","CS-3220","CS-3310","CS-3410","CS-3510","CS-3610","CS-4810","CS-4820","CY-1000","CY-3420","EGCP-1010","EGCP-3210","EGCP-4310","EGGN-3110","EGGN-4010","MATH-2520"]},"Electives":{"courses":["CY-3320","CY-4310","CY-4330","CS-4430","CS-4710","CS-4730","EGCP-3010","EGCP-4210","MATH-3610"]},"Cognates":{"courses":["CHEM-1050","MATH-1710","MATH-1720","PHYS-2110","PHYS-2120"]},"GenEds":{"courses":["BTGE-1725","BTGE-2730","BTGE-2740","BTGE-3755","BTGE-3765"]}}});
+  //name conflict check
+  const query = "select plan_id from ljc_plan where username=? and planname=?";
+  let namechk = await db.query(query, [req.session.username?req.session.username : semjaza, name]);
+  while (namechk.length > 0) {
+    name = "_" + name;
+    namechk = await db.query(query, [req.session.username?req.session.username : semjaza, name]);
   }
-  catch(err) {
-    console.error(err);
-    res.status(500).send(err);
+
+  //create plan, get relevant data chunks for the insertions in related tables
+  console.log(`insert into ljc_plan values(NULL,${name},${req.session.username? req.session.username : "session invalid..."},${catayear},0`);
+  
+  const planid = await db.query(query, [req.session.username?req.session.username : semjaza, name]);
+  const majorid = await db.query("select major_id from ljc_major where major = ?", createMajor);
+  const minorid = await db.query("select minor_id from ljc_minor where minor = ?", createMinor);
+
+  //insert into the related tables: planned_majors and planned_minors
+  console.log(`insert into ljc_planned_majors values(${planid},${majorid[0].major_id})`);
+  console.log(`insert into ljc_planned_minors values(${planid},${minorid[0].minor_id})`);
+  for (let yr = catayear; yr < parseInt(catayear) + 4; ++yr) {
+    console.log(`insert into ljc_planned_years(${planid},${yr})`);
   }
+
+  res.status(200).send({message: "req"});
 });
+
+router.get('/manageplan', async (req, res) => {
+  const db = makeDB();
+  let plans = await db.query("select * from ljc_plan where username=?",[req.session.username?req.session.username : "semjaza"]);
+  for (let m of plans) {
+    let maj = ""
+    let min = "";
+    for (let mid of await db.query("select major_id from ljc_planned_majors where plan_id=?",m.plan_id)) {
+      let currmaj = await db.query("select major from ljc_major where major_id = ?",mid.major_id);
+      maj = maj + ", " + currmaj[0].major;
+    }
+    for (let mid of await db.query("select minor_id from ljc_planned_minors where plan_id=?",m.plan_id)) {
+      let currmin = await db.query("select minor from ljc_minor where minor_id = ?",mid.minor_id);
+      min = min + ", " + currmin[0].minor;
+    }
+    maj = maj.substring(2);
+    min = min.substring(2);
+    
+    m.plan_id = m.planname;
+    m.planname = maj;
+    m.username = min;
+  }
+  res.status(200).send({message: plans});
+});
+
+router.get('/majors',async (req,res) => {
+  const db = makeDB();
+  const majors = await db.query("select * from ljc_major");
+  res.status(200).send({message: majors});
+});
+
+router.get('/minors',async (req,res) => {
+  const db = makeDB();
+  const minors = await db.query("select * from ljc_minor");
+  res.status(200).send({message: minors});
+});
+
+router.get('/years',async (req,res) => {
+  const db = makeDB();
+  const years = await db.query("select * from ljc_catayear");
+  res.status(200).send({message: years});
+});
+//END ADDED BY LUKE
 
 module.exports = router;
