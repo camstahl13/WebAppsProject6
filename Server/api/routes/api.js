@@ -75,8 +75,27 @@ router.post('/user/login', async (req, res) => {
 });
 
 // Define the SQL queries as constants
-const getPlannedYearsQuery = `SELECT * FROM ljc_planned_years WHERE plan_id = ?;`;
-const getPlannedCoursesQuery = `SELECT course_id FROM ljc_planned_courses WHERE plan_id = ? && year = ? && term = ?;`;
+const getDefaultPlanQuery = `SELECT plan_id FROM ljc_plan WHERE username = ? && default_ = 1;`;
+
+router.get('/default/:student'/*, checkSession*/, async(req, res) => {
+  const username = req.session.username;
+  const student = req.params.student;
+  console.log(`API request: Get default plan for ${student}, Username - ${username}`);
+
+  const db = makeDB();
+
+  try {
+    let default_plans = await db.query(getDefaultPlanQuery, [student]);
+    if (default_plans.length < 1) {
+      res.status(200).send({default_plan: null});
+    } else {
+      res.status(200).send({default_plan: default_plans[0].plan_id});
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
 
 const delPlannedYearsQuery = `DELETE FROM ljc_planned_years WHERE plan_id = ?;`;
 const delPlannedCoursesQuery = `DELETE from ljc_planned_courses WHERE plan_id = ?;`;
@@ -104,11 +123,15 @@ router.post('/schedule/:plan_id', checkSession, async(req, res) => {
         }
       }
     }
+    res.status(200).send({message: "success"});
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
   }
 });
+
+const getPlannedYearsQuery = `SELECT * FROM ljc_planned_years WHERE plan_id = ?;`;
+const getPlannedCoursesQuery = `SELECT course_id FROM ljc_planned_courses WHERE plan_id = ? && year = ? && term = ?;`;
 
 router.get('/schedule/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
