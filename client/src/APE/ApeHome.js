@@ -28,7 +28,7 @@ class ApeHome extends Component {
             catalog_year: null,
             schedule: []
         };
-	}
+    }
 
     async getAllData() {
         await this.getCatalog();
@@ -44,43 +44,43 @@ class ApeHome extends Component {
     }
 
     async getDefaultPlan(student) {
-        await fetch(`http://localhost:3001/api/default/${student}`, 
-                {method: 'GET', credentials: "include"})
+        await fetch(`http://localhost:3001/api/default/${student}`,
+            { method: 'GET', credentials: "include" })
             .then(res => res.json())
             .then(res => this.setState({ plan_id: res.default_plan }, () => {this.getAllData()}));
     }
 
     async getRequirements() {
-        await fetch(`http://localhost:3001/api/requirements/${this.state.plan_id}`, 
-                {method: 'GET', credentials: "include"})
+        await fetch(`http://localhost:3001/api/requirements/${this.state.plan_id}`,
+            { method: 'GET', credentials: "include" })
             .then(res => res.json())
             .then(res => this.setState({ requirements: res.requirements }));
     }
 
     async getCatalog() {
-        await fetch(`http://localhost:3001/api/catalog/${this.state.plan_id}`, 
-                {method: 'GET', credentials: "include"})
+        await fetch(`http://localhost:3001/api/catalog/${this.state.plan_id}`,
+            { method: 'GET', credentials: "include" })
             .then(res => res.json())
             .then(res => this.setState({ catalog: res.catalog }));
     }
 
     async getSchedule() {
-        await fetch(`http://localhost:3001/api/schedule/${this.state.plan_id}`, 
-                {method: 'GET', credentials: "include"})
+        await fetch(`http://localhost:3001/api/schedule/${this.state.plan_id}`,
+            { method: 'GET', credentials: "include" })
             .then(res => res.json())
             .then(res => this.setState({ schedule: res.schedule }));
     }
 
     async getInfo() {
-        await fetch(`http://localhost:3001/api/info/${this.state.plan_id}`, 
-                {method: 'GET', credentials: "include"})
+        await fetch(`http://localhost:3001/api/info/${this.state.plan_id}`,
+            { method: 'GET', credentials: "include" })
             .then(res => res.json())
             .then(res => this.setState({ student: res.student, catalog_year: res.catalog_year, majors: res.majors, minors: res.minors }));
     }
 
     async get(obj) {
-        await fetch(`http://localhost:3001/api/${obj}/${this.props.plan_id}`, 
-                {method: 'GET', credentials: "include"})
+        await fetch(`http://localhost:3001/api/${obj}/${this.props.plan_id}`,
+            { method: 'GET', credentials: "include" })
             .then(res => res.json())
             .then(res => this.setState({ [obj]: res }));
     }
@@ -100,7 +100,7 @@ class ApeHome extends Component {
                     <TL requirements={this.state.requirements}
                         schedule={this.state.schedule}
                         catalog={this.state.catalog} />
-                    <TR schedule={this.state.schedule} 
+                    <TR schedule={this.state.schedule}
                         setSchedule={(sched) => {
                             this.setState({ schedule: sched });
                             let res = { schedule: sched };
@@ -108,7 +108,7 @@ class ApeHome extends Component {
                             fetch(`http://localhost:3001/api/schedule/${this.state.plan_id}`, {
                                 method: 'POST',
                                 credentials: 'include',
-                                headers: {'Content-Type':'application/json'},
+                                headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(res)
                             });
                         }}
@@ -118,7 +118,7 @@ class ApeHome extends Component {
                         catalog={this.state.catalog}
                         plan_id={this.state.plan_id} />
                     <BL />
-                    <BR catalog={this.state.catalog}/>
+                    <BR catalog={this.state.catalog} />
                 </main>
             </>
         )
