@@ -22,13 +22,18 @@ class ApeHome extends Component {
         };
 	}
 
-    componentDidMount() {
-        /*
-        this.get('requirements');
-        this.get('catalog');
-        this.get('plan');
-        */
+    async componentDidMount() {
+        await this.getDefaultPlan();
+        await this.getRequirements();
+        await this.getCatalog();
+        await this.getSchedule();
+        await this.getInfo();
 
+        console.log(this.state.requirements);
+        console.log(this.state.catalog);
+        console.log(this.state.schedule);
+        
+        /*
         const reqs = {
             "Core": ["CS-1210","CS-1220","CS-2210","CS-3210","CS-3220","CS-3310","CS-3410","CS-3510","CS-3610","CS-4810","CS-4820","CY-1000","CY-3420","EGCP-1010","EGCP-3210","EGCP-4310","EGGN-3110","EGGN-4010","MATH-2520"],
             "Electives": ["CY-3320","CY-4310","CY-4330","CS-4430","CS-4710","CS-4730","EGCP-3010","EGCP-4210","MATH-3610"],
@@ -132,6 +137,42 @@ class ApeHome extends Component {
             current_semester: "SP",
             catalog_year: 2020,
         });
+        */
+    }
+
+    async getDefaultPlan() {
+        await fetch(`http://localhost:3001/api/default/campbell`, 
+                {method: 'GET', credentials: "include"})
+            .then(res => res.json())
+            .then(res => this.setState({ plan_id: res.default_plan }));
+    }
+
+    async getRequirements() {
+        await fetch(`http://localhost:3001/api/requirements/${this.state.plan_id}`, 
+                {method: 'GET', credentials: "include"})
+            .then(res => res.json())
+            .then(res => this.setState({ requirements: res.requirements }));
+    }
+
+    async getCatalog() {
+        await fetch(`http://localhost:3001/api/catalog/${this.state.plan_id}`, 
+                {method: 'GET', credentials: "include"})
+            .then(res => res.json())
+            .then(res => this.setState({ catalog: res.catalog }));
+    }
+
+    async getSchedule() {
+        await fetch(`http://localhost:3001/api/schedule/${this.state.plan_id}`, 
+                {method: 'GET', credentials: "include"})
+            .then(res => res.json())
+            .then(res => this.setState({ schedule: res.schedule }));
+    }
+
+    async getInfo() {
+        await fetch(`http://localhost:3001/api/info/${this.state.plan_id}`, 
+                {method: 'GET', credentials: "include"})
+            .then(res => res.json())
+            .then(res => this.setState({ student: res.student, catalog_year: res.catalog_year, majors: res.majors, minors: res.minors }));
     }
 
     async get(obj) {

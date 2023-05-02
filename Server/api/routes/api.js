@@ -103,7 +103,7 @@ const delPlannedCoursesQuery = `DELETE from ljc_planned_courses WHERE plan_id = 
 const insPlannedYearQuery = `INSERT INTO ljc_planned_years(plan_id, year) VALUES(?, ?);`
 const insPlannedCourseQuery = `INSERT INTO ljc_planned_courses(plan_id, course_id, year, term) VALUES(?, ?, ?, ?);`
 
-router.post('/schedule/:plan_id', checkSession, async(req, res) => {
+router.post('/schedule/:plan_id'/*, checkSession*/, async(req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Set schedule for plan with ID ${planId}, Username - ${username}`);
@@ -133,7 +133,7 @@ router.post('/schedule/:plan_id', checkSession, async(req, res) => {
 const getPlannedYearsQuery = `SELECT * FROM ljc_planned_years WHERE plan_id = ?;`;
 const getPlannedCoursesQuery = `SELECT course_id FROM ljc_planned_courses WHERE plan_id = ? && year = ? && term = ?;`;
 
-router.get('/schedule/:plan_id', checkSession, async (req, res) => {
+router.get('/schedule/:plan_id'/*, checkSession*/, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get schedule for plan with ID ${planId}, Username - ${username}`);
@@ -178,7 +178,7 @@ const getCatalogCoursesQuery = `SELECT course.course_id, course.title, course.de
                                   JOIN ljc_catalog as cata ON course.course_id = cata.course_id
                                 WHERE cata.catalog_year = ?;`;
 
-router.get('/catalog/:plan_id', checkSession, async (req, res) => {
+router.get('/catalog/:plan_id'/*, checkSession*/, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get catalog for plan with ID ${planId}, Username - ${username}`);
@@ -276,7 +276,7 @@ const getRequiredMinorCourses = `SELECT minor.minor AS min, minor_requirement.co
                                     JOIN ljc_minor_requirements AS minor_requirement ON planned_minor.minor_id = minor_requirement.minor_id
                                   WHERE plan.plan_id = ?;`;
 
-router.get('/requirements/:plan_id', checkSession, async (req, res) => {
+router.get('/requirements/:plan_id'/*, checkSession*/, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get catalog for plan with ID ${planId}, Username - ${username}`);
