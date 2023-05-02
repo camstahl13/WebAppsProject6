@@ -18,8 +18,8 @@ function Catalog(props) {
     }
     
     if (props.courses.catalog != null) {
-        for (let item of props.courses.catalog) {
-            tbody.push(<tr className={item.course_id}>
+        for (let [i, item] of props.courses.catalog.entries()) {
+            tbody.push(<tr key={i} className={item.course_id}>
                 <td>{item.course_id}</td>
                 <td>{item.title}</td>
                 <td>{item.description}</td>
@@ -28,7 +28,7 @@ function Catalog(props) {
         }
     }
     else {
-        tbody.push(<tr><td>{props.courses}</td><td>{props.courses}</td><td>{props.courses}</td><td>{props.courses}</td></tr>);
+        tbody.push(<tr key={0}><td>{props.courses}</td><td>{props.courses}</td><td>{props.courses}</td><td>{props.courses}</td></tr>);
     }
     
     return(<>

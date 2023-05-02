@@ -20,6 +20,7 @@ function CreatePlan(props) {
         planname.className = "modalInput";
         planname.type = "text";
         planname.name = "name";
+        planname.id = "createPlanName";
         
         let planlabel = document.createElement('label');
         planlabel.for = "label";
@@ -65,6 +66,24 @@ function CreatePlan(props) {
         createplanbutton.type = "submit";
         createplanbutton.id = "submitCreatePlan";
         createplanbutton.value = "Create Plan";
+        createplanbutton.onclick = async (e) => {
+            e.preventDefault();
+            await fetch(`http://localhost:3001/api/createplan/${props.plan_id}`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({
+                                name: document.getElementById("createPlanName").value,
+                                createMajor: document.getElementById("createMajor").value,
+                                createMinor: document.getElementById("createMinor").value,
+                                catayear: document.getElementById("catayear").value
+                            })
+            })
+            .then(res => res.json())
+            .then(res => props.setPlanId(res.pid));
+            props.getPlans();
+            body.removeChild(div);
+        }
         cancelbutton.className = "modalButton";
         cancelbutton.type = "button";
         cancelbutton.id = "cancelCreatePlan";

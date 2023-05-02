@@ -40,14 +40,14 @@ class ApeHome extends Component {
     async componentDidMount() {
         const name = this.props.params.name;
         await this.getDefaultPlan(name);
-        await this.getAllData();
+        //await this.getAllData();
     }
 
     async getDefaultPlan(student) {
         await fetch(`http://localhost:3001/api/default/${student}`, 
                 {method: 'GET', credentials: "include"})
             .then(res => res.json())
-            .then(res => this.setState({ plan_id: res.default_plan }));
+            .then(res => this.setState({ plan_id: res.default_plan }, () => {this.getAllData()}));
     }
 
     async getRequirements() {
@@ -94,8 +94,7 @@ class ApeHome extends Component {
                             minors={this.state.minors}
                             plan_id={this.state.plan_id}
                             setPlanId={(pid) => {
-                                this.setState({plan_id: pid});
-                                this.getAllData();
+                                this.setState({plan_id: pid}, () => {this.getAllData()});
                             }}/>
                 <main id="main">
                     <TL requirements={this.state.requirements}

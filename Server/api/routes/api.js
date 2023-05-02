@@ -446,6 +446,9 @@ router.get('/help', function (req, res) {
 const query = "select plan_id from ljc_plan where username=? and planname=?";
 
 router.post('/createplan/:plan_id', checkSession, async (req, res) => {
+
+  console.log(req.body);
+
   let { name, createMajor, createMinor, catayear } = req.body;
   const uname = await db.query(`select username from ljc_plan where plan_id=${req.params.plan_id}`)
   let foruser=uname[0].username;
@@ -455,24 +458,24 @@ router.post('/createplan/:plan_id', checkSession, async (req, res) => {
     let namechk = await db.query(query, [foruser, name]);
     while (namechk.length > 0) {
       name = "_" + name;
-      namechk = await db.query(query, [forname, name]);
+      namechk = await db.query(query, [foruser, name]);
     }
 
     //create plan, get relevant data chunks for the insertions in related tables
-    console.log(`insert into ljc_plan values(NULL,${name},${forname},${catayear},0)`);
+    await db.query(`insert into ljc_plan values(NULL,'${name}','${foruser}',${catayear},0,'','')`);
 
     const planid = await db.query(query, [foruser, name]);
     const majorid = await db.query("select major_id from ljc_major where major = ?", createMajor);
     const minorid = await db.query("select minor_id from ljc_minor where minor = ?", createMinor);
 
     //insert into the related tables: planned_majors and planned_minors
-    console.log(`insert into ljc_planned_majors values(${planid},${majorid[0].major_id})`);
-    console.log(`insert into ljc_planned_minors values(${planid},${minorid[0].minor_id})`);
+    await db.query(`insert into ljc_planned_majors values(${planid[0].plan_id},${majorid[0].major_id})`);
+    await db.query(`insert into ljc_planned_minors values(${planid[0].plan_id},${minorid[0].minor_id})`);
     for (let yr = catayear; yr < parseInt(catayear) + 4; ++yr) {
-      console.log(`insert into ljc_planned_years(${planid},${yr})`);
+      await db.query(`insert into ljc_planned_years values(${planid[0].plan_id},${yr})`);
     }
 
-    res.status(200).send({ message: "req" });
+    res.status(200).send({ pid: planid[0].plan_id });
   }
   catch (err) {
     res.status(500).send({ message: err });
@@ -481,8 +484,6 @@ router.post('/createplan/:plan_id', checkSession, async (req, res) => {
 });
 
 router.get('/manageplan', checkSession, async (req, res) => {
-  
-
   try {
     let plans = await db.query("select * from ljc_plan where username=?", [req.session.username ? req.session.username : "semjaza"]);
     let displayplans = [];

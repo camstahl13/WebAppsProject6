@@ -36,8 +36,8 @@ class TL extends Component {
                 </div>
                 <Accordion allowZeroExpanded>
                     {this.props.requirements &&
-                    Object.keys(this.props.requirements).map(category =>
-                        <AccordionItem>
+                    Object.keys(this.props.requirements).map((category, i) =>
+                        <AccordionItem key={i}>
                             <AccordionItemHeading>
                                 <AccordionItemButton>
                                     {category}
@@ -46,7 +46,8 @@ class TL extends Component {
                             <AccordionItemPanel>
                                 <ul className="reqcat">
                                     {this.props.requirements[category].map((course, i) =>
-                                            <Course idx={i}
+                                            <Course
+                                                key={i}
                                                 course_id={this.props.catalog && this.props.catalog.courses && this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "CS-0000"}
                                                 course_name={this.props.catalog && this.props.catalog.courses && this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Name unknown"}
                                                 isPlanned={this.props.catalog && this.props.catalog.courses && this.isPlanned(this.props.catalog.courses[course])}>
@@ -68,7 +69,6 @@ class Course extends Component {
     render() {
         return (
             <li draggable
-                key={this.props.course_id}
                 className={"reqcourse " + (this.props.isPlanned ? "planned" : "unplanned")}
                 onDragStart={(e) => {
                     e.dataTransfer.setData("text/plain", this.props.course_id);
