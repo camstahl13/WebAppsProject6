@@ -34,7 +34,7 @@ html {
 .aca-panel > ul {
   overflow-y: scroll;
   overflow-anchor: none;
-  display: flex;
+  display: grid;
   flex-wrap: wrap;
   height: calc(100% - 42px);
   padding: 0;
@@ -42,19 +42,17 @@ html {
   margin-bottom: 2em;
   box-sizing: border-box;
   margin-top: 2.5em;
+  min-width: 750px;
 }
-.aca-panel > ul > li {
-  overflow: hidden;
+.year {
   list-style: none;
   border-radius: 0.5em;
-  padding: 0.5rem;
-  margin: 0.5rem;
-  max-width: calc(33.3333333333% - 1rem);
-  width: 100%;
-  min-height: 150px;
+  margin: 0.3rem;
+  max-width: 100%;
+  width: -webkit-fill-available;
+  min-height: 200px;
   color: white;
   box-sizing: border-box;
-  background-color: #181b23;
 }
 
 .cf-panel h2 {
@@ -267,13 +265,13 @@ main > div .sec-header form.input {
 	background-color: #9a9a9a50;
 }
 
-#accordion .planned label::before {
+.planned::before {
 	content: "\2705";
 	font-size: 0.7em;
 	margin-right: 5px;
 }
 
-#accordion .unplanned label::before {
+.unplanned::before {
 	content: "\1F7E5";
 	font-size: 0.7em;
 	margin-right: 5px;
@@ -305,10 +303,10 @@ main > div .sec-header form.input {
   }
 }
 @media screen and (max-width: 1200px) {
-  .aca-panel > ul > li {
-    max-width: calc(50% - 1rem);
-    width: 100%;
-    min-height: 150px;
+  .year {
+    max-width: 100%;
+    width: -webkit-fill-available;
+    min-height: 200px;
     min-width: 300px;
   }
   #version {
@@ -449,8 +447,14 @@ button.disabled {
 }
 
 .course-list > li:hover {
-  cursor: pointer;
   color: darkgray;
+}
+
+.scheduled, .unscheduled {
+  margin: 0px 5px 0px 5px;
+  background-color: #181b23;
+  padding: 10px;
+  border-radius: 20px;
 }
 
 .unscheduled {
@@ -461,7 +465,7 @@ button.disabled {
   letter-spacing: 0.1em;
 }
 .unscheduled .sem, .scheduled .sem {
-  margin: -5px;
+  margin: 0px;
   float: left;
   font-weight: bold;
   color: darkgrey;
@@ -479,6 +483,7 @@ ul.course-list {
 ul.course-list > li {
   margin-top: 0px;
   width: 100%;
+  font-size: 0.9em;
 }
 
 #TR > ul::-webkit-scrollbar-thumb {
@@ -728,15 +733,142 @@ ul.reqcat {
   list-style-type: none;
   padding: 5px;
   margin: 0px;
-  font-size: 0.7em;
+  font-size: 0.9em;
 }
 
 li.reqcourse {
   border-radius: 5px;
   padding: 0px 5px;
+  font-family: "system-ui";
+  font-size: 1em;
 }
 
 li.reqcourse:hover {
   background-color: #ffffff3b;
   cursor: pointer;
+}
+
+.semesters {
+  display: grid;
+  grid-template-columns: 33% 34% 33%;
+  height: 100%;
+}
+
+.aca-panel ul {
+  list-style-type: none;
+  padding: 5px;
+}
+
+.sem-courses {
+  margin-top:5px;
+}
+
+.course-list li:hover .remcourse {
+  display: inline;
+}
+
+.remcourse:hover {
+  cursor: pointer;
+}
+
+.remcourse {
+  display: none;
+  float: right;
+}
+
+#acabuttonpanel {
+  text-align: center;
+  margin: 15px 0px 5px 0px;
+}
+
+.acabutton {
+  margin: 0em 2em;
+  width: 15%;
+  min-width: 8em;
+  background-color:#ad7300;
+  height: 2em;
+  border: 2px solid #ffffff66;
+  border-radius: 5px;
+  font-family: "system-ui";
+  font-style: italic;
+  font-size: 1em;
+}
+
+.acabutton:hover {
+  cursor: pointer;
+  background-color: #ffab00;
+}
+
+.notes {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+  z-index: 100;
+}
+
+.notes-content {
+  width: fit-content;
+  background-color: #fff;
+  border: 2px solid black;
+  border-radius: 5%;
+  font-family: system-ui;
+}
+
+.notes-header > h3 {
+  margin-block-start: 0;
+  margin-block-end: 0;
+  text-align: center;
+}
+
+.notes-footer {
+  text-align: center;
+}
+
+.notes-header, .notes-footer {
+  padding: 10px;
+}
+
+.notes-title {
+  margin: 0px;
+}
+
+.notes-close {
+  background-color: #0064bb;
+  border-radius: 10px;
+  color: white;
+  border: 2px solid black;
+  padding: 5px;
+  font-size: medium;
+}
+
+.notes-close:hover {
+  background-color: #36a2ff;
+  cursor: pointer;
+}
+
+.notes-body {
+  padding: 10px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  width: min-content;
+}
+
+.notes-label {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.notes-body > textarea {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  background-color: #181b23;
+  color: white;
+  resize: vertical;
 }
