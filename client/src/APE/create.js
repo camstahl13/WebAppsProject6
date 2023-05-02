@@ -14,7 +14,7 @@ function CreatePlan(props) {
         let form = document.createElement('form');
         form.id="createplan";
         form.method = "post";
-        form.action = "http://localhost:3001/api/createplan";
+        form.action = `http://localhost:3001/api/createplan/${props.plan_id}`;
 
         let planname = document.createElement('input');
         planname.className = "modalInput";
