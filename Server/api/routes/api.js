@@ -1,7 +1,6 @@
 const sha256 = require('../src/sha256');
 const makeDB = require('../db/database');
 var express = require('express');
-const { mainModule } = require('process');
 var router = express.Router();
 
 const unauthorizedMessage = {
@@ -10,7 +9,7 @@ const unauthorizedMessage = {
     status: 403
   }
 };
-
+const db = makeDB();
 // Middleware to check session
 const checkSession = (req, res, next) => {
   if (!req.session.username) {
@@ -35,31 +34,29 @@ router.get('/user', checkSession, async (req, res) => {
 
 //Logout URI -> /api/user/logout
 router.post('/user/logout', (req, res) => {
-  console.log("API REQEST -> " + req.params.username);
+  console.log("API REQEST ->  LOGOUT user:" + req.session.username);
   req.session.destroy();
   res.render('api', { title: 'API working properly', loggedin: "Logged Out" })
 });
 
 // Endpoint for login -> /api/user/login
 router.post('/user/login', async (req, res) => {
-  console.log(req.body)
   const { uname, pass } = req.body;
-
-  console.log(`API Login -> User: ${uname}, Password: ${pass}`);
+  console.log(`API Login attempt -> User: ${uname}`);
 
   if (!uname || !pass) {
     return res.status(400).send({ message: "Missing Credentials" });
   }
-  const db = makeDB();
 
   try {
     const hashedPassword = sha256.sha256(pass);
-    const results = await db.query('SELECT * FROM ljc_user WHERE username = ? AND password = ?', [uname, hashedPassword]);
+    const results = await db.query('SELECT username, first_name, last_name, is_faculty FROM ljc_user WHERE username = ? AND password = ?', [uname, hashedPassword]);
 
     //If the user is found in the database, set the session username to the username
     if (results.length > 0) {
+      console.log(`API Login -> User: ${uname} - SUCCESS`)
       req.session.username = uname;
-      return res.status(200).send({ username: uname });
+      return res.status(200).send({ username: uname, plan: -1, is_faculty: results[0].is_faculty, loggedIn: true });
     } else {
       return res.status(401).send({ message: "Invalid Username or Password" });
     }
@@ -69,34 +66,30 @@ router.post('/user/login', async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
   //Clode database connection
-  finally{
-    db.close();
-  }
+  
 });
 
 // Define the SQL queries as constants
 const getDefaultPlanQuery = `SELECT plan_id FROM ljc_plan WHERE username = ? && default_ = 1;`;
 
-router.get('/default/:student'/*, checkSession*/, async(req, res) => {
+router.get('/default/:student', checkSession, async (req, res) => {
   const username = req.session.username;
   const student = req.params.student;
   console.log(`API request: Get default plan for ${student}, Username - ${username}`);
 
-  const db = makeDB();
+
 
   try {
     let default_plans = await db.query(getDefaultPlanQuery, [student]);
     if (default_plans.length < 1) {
-      res.status(200).send({default_plan: null});
+      res.status(200).send({ default_plan: null });
     } else {
-      res.status(200).send({default_plan: default_plans[0].plan_id});
+      res.status(200).send({ default_plan: default_plans[0].plan_id });
     }
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 const delPlannedYearsQuery = `DELETE FROM ljc_planned_years WHERE plan_id = ?;`;
@@ -105,12 +98,12 @@ const delPlannedCoursesQuery = `DELETE from ljc_planned_courses WHERE plan_id = 
 const insPlannedYearQuery = `INSERT INTO ljc_planned_years(plan_id, year) VALUES(?, ?);`
 const insPlannedCourseQuery = `INSERT INTO ljc_planned_courses(plan_id, course_id, year, term) VALUES(?, ?, ?, ?);`
 
-router.post('/schedule/:plan_id'/*, checkSession*/, async(req, res) => {
+router.post('/schedule/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Set schedule for plan with ID ${planId}, Username - ${username}`);
 
-  const db = makeDB();
+
 
   try {
     await db.query(delPlannedYearsQuery, [planId]);
@@ -125,24 +118,22 @@ router.post('/schedule/:plan_id'/*, checkSession*/, async(req, res) => {
         }
       }
     }
-    res.status(200).send({message: "success"});
+    res.status(200).send({ message: "success" });
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 const getPlannedYearsQuery = `SELECT * FROM ljc_planned_years WHERE plan_id = ?;`;
 const getPlannedCoursesQuery = `SELECT course_id FROM ljc_planned_courses WHERE plan_id = ? && year = ? && term = ?;`;
 
-router.get('/schedule/:plan_id'/*, checkSession*/, async (req, res) => {
+router.get('/schedule/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get schedule for plan with ID ${planId}, Username - ${username}`);
 
-  const db = makeDB();
+
   try {
     // Get the planned years and courses from the database
     const planned_years = await db.query(getPlannedYearsQuery, [planId]);
@@ -167,14 +158,12 @@ router.get('/schedule/:plan_id'/*, checkSession*/, async (req, res) => {
         planned_year.semesters.push(semester);
       }
     }
-    
-    res.status(200).send({schedule: sched});
+
+    res.status(200).send({ schedule: sched });
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 const getCatalogYearQuery = `SELECT catalog_year FROM ljc_plan WHERE plan_id = ?;`;
@@ -183,15 +172,15 @@ const getCatalogCoursesQuery = `SELECT course.course_id, course.title, course.de
                                   JOIN ljc_catalog as cata ON course.course_id = cata.course_id
                                 WHERE cata.catalog_year = ?;`;
 
-router.get('/catalog/:plan_id'/*, checkSession*/, async (req, res) => {
+router.get('/catalog/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
-  console.log(`API request: Get catalog for plan with ID ${planId}, Username - ${username}`);
+  console.log(`GET request: /catalog/${planId}, Username - ${username}`);
 
-  const db = makeDB();
+
   try {
     let catalog_year_obj = await db.query(getCatalogYearQuery, [planId]);
-    let catalog_year = catalog_year_obj[0].catalog_year;
+    let catalog_year = catalog_year_obj.catalog_year;
 
     let catalog_courses = await db.query(getCatalogCoursesQuery, [catalog_year]);
 
@@ -208,13 +197,11 @@ router.get('/catalog/:plan_id'/*, checkSession*/, async (req, res) => {
       };
     }
 
-    res.status(200).send({catalog: catalog});
-  } catch(error) {
+    res.status(200).send({ catalog: catalog });
+  } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 const getPlanInfo = `SELECT username, catalog_year FROM ljc_plan WHERE plan_id = ?;`;
@@ -229,12 +216,12 @@ const getPlanMinors = `SELECT minor.minor as minor_name
                           JOIN ljc_minor AS minor ON planned_minor.minor_id = minor.minor_id
                         WHERE plan.plan_id = ? && minor.minor_id != 5;`;
 
-router.get('/info/:plan_id'/*, checkSession*/, async (req, res) => {
+router.get('/info/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get general info for plan with ID ${planId}, Username - ${username}`);
 
-  const db = makeDB();
+
   try {
     let info = {
       student: null,
@@ -258,12 +245,10 @@ router.get('/info/:plan_id'/*, checkSession*/, async (req, res) => {
     }
 
     res.status(200).send(info);
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 
@@ -282,12 +267,12 @@ const getRequiredMinorCourses = `SELECT minor.minor AS min, minor_requirement.co
                                     JOIN ljc_minor_requirements AS minor_requirement ON planned_minor.minor_id = minor_requirement.minor_id
                                   WHERE plan.plan_id = ?;`;
 
-router.get('/requirements/:plan_id'/*, checkSession*/, async (req, res) => {
+router.get('/requirements/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get catalog for plan with ID ${planId}, Username - ${username}`);
 
-  const db = makeDB();
+
   try {
     let reqs = {};
 
@@ -310,24 +295,22 @@ router.get('/requirements/:plan_id'/*, checkSession*/, async (req, res) => {
       reqs[category].push(requiredMinorCourse.course);
     }
 
-    res.status(200).send({requirements: reqs});
-  } catch(error) {
+    res.status(200).send({ requirements: reqs });
+  } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 const getStudentNotesQuery = `SELECT student_notes FROM ljc_plan WHERE plan_id = ?;`;
 const getFacultyNotesQuery = `SELECT faculty_notes FROM ljc_plan WHERE plan_id = ?;`;
 
-router.get('/notes/:plan_id'/*, checkSession*/, async (req,res) => {
+router.get('/notes/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get notes for plan with ID ${planId}, Username - ${username}`);
 
-  const db = makeDB();
+
   try {
     let notes = {};
 
@@ -340,23 +323,21 @@ router.get('/notes/:plan_id'/*, checkSession*/, async (req,res) => {
     }
 
     res.status(200).send(notes);
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 const setStudentNotesQuery = `UPDATE ljc_plan SET student_notes = ? WHERE plan_id = ?;`;
 const setFacultyNotesQuery = `UPDATE ljc_plan SET faculty_notes = ? WHERE plan_id = ?;`;
 
-router.post('/notes/:plan_id'/*, checkSession*/, async (req,res) => {
+router.post('/notes/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Set notes for plan with ID ${planId}, Username - ${username}`);
 
-  const db = makeDB();
+
   try {
     if (req.body.studentnotes) {
       await db.query(setStudentNotesQuery, [req.body.studentnotes, planId]);
@@ -366,12 +347,10 @@ router.post('/notes/:plan_id'/*, checkSession*/, async (req,res) => {
     }
 
     res.status(200).send({ message: "success" });
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 //get plans
@@ -381,7 +360,7 @@ const getPlans = `select plan_id, planname, catalog_year, default_ as "default" 
 router.get('/plans', checkSession, async (req, res) => {
   console.log("API request: Get plans");
 
-  const db = makeDB();
+
   try {
     // Get the planned years and courses from the database
     const plans = await db.query(getPlans, [req.session.username]);
@@ -390,6 +369,7 @@ router.get('/plans', checkSession, async (req, res) => {
     console.error(error);
     res.status(500).send(error.message);
   }
+  
 });
 
 //get get Heading URI -> /api/heading
@@ -409,7 +389,7 @@ where
 router.get('/heading', checkSession, async (req, res) => {
   const username = req.session.username;
   console.log(`API request: heading, Username - ${username}`);
-  const db = makeDB();
+
 
   try {
     const result = await db.query(getHeadingQuery, [username]);
@@ -417,19 +397,23 @@ router.get('/heading', checkSession, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
-  } finally {
-    db.close();
-  }
+  } 
 });
 
 
 //Get Catalog URI -> /api/catalog
 //LUKE EDITED THIS FUNCTION TO DO STUFF
-router.get('/Catalog', async (req, res) => {
-  console.log("Getting catalog...");
-  const db = makeDB();
-  const catalog = await db.query("select * from ljc_course");
-  res.status(200).send({ catalog });
+router.get('/Catalog', checkSession, async (req, res) => {
+  console.log("API REQEST -> Get Catalog, Username - " + req.session.username);
+
+  try {
+    const catalog = await db.query("select * from ljc_course");
+    res.status(200).send({ catalog });
+  }
+  catch (err) {
+    res.status(500).send({ message: err });
+  }
+  
 });
 
 //Get Catalog URI -> /api/catalog
@@ -440,16 +424,15 @@ router.get('/requirments', async (req, res) => {
     res.status(418).send({ message: "METHOD NOT IMPLEMENTED" });
   }
   catch (err) {
-    console.error(err);
-    res.status(500).send(err);
+    res.status(500).send({ message: err });
   }
 });
 
-router.get('/help', function(req, res){
+router.get('/help', function (req, res) {
   const fs = require('fs');
 
   // Read JSON data from file
-  const jsonData = fs.readFileSync(require('path').resolve(__dirname,'../public/docs.json'));
+  const jsonData = fs.readFileSync(require('path').resolve(__dirname, '../public/docs.json'));
 
   // Parse JSON data
   const calls = JSON.parse(jsonData);
@@ -459,80 +442,110 @@ router.get('/help', function(req, res){
   fs.close();
 });
 
-//ADDED BY LUKE
-router.post('/createplan', async (req,res) => {
+
+const query = "select plan_id from ljc_plan where username=? and planname=?";
+
+router.post('/createplan', async (req, res) => {
   //ADD CHECK SESSION!!! (and remove semjaza)
-  const db = makeDB();
+
   const semjaza = "semjaza";
-  let {name, createMajor, createMinor, catayear} = req.body;
+  let { name, createMajor, createMinor, catayear } = req.body;
 
   //name conflict check
-  const query = "select plan_id from ljc_plan where username=? and planname=?";
-  let namechk = await db.query(query, [req.session.username?req.session.username : semjaza, name]);
-  while (namechk.length > 0) {
-    name = "_" + name;
-    namechk = await db.query(query, [req.session.username?req.session.username : semjaza, name]);
-  }
+  try {
+    let namechk = await db.query(query, [req.session.username ? req.session.username : semjaza, name]);
+    while (namechk.length > 0) {
+      name = "_" + name;
+      namechk = await db.query(query, [req.session.username ? req.session.username : semjaza, name]);
+    }
 
-  //create plan, get relevant data chunks for the insertions in related tables
-  console.log(`insert into ljc_plan values(NULL,${name},${req.session.username? req.session.username : "session invalid..."},${catayear},0`);
+    //create plan, get relevant data chunks for the insertions in related tables
+    console.log(`insert into ljc_plan values(NULL,${name},${req.session.username ? req.session.username : "session invalid..."},${catayear},0`);
+
+    const planid = await db.query(query, [req.session.username ? req.session.username : semjaza, name]);
+    const majorid = await db.query("select major_id from ljc_major where major = ?", createMajor);
+    const minorid = await db.query("select minor_id from ljc_minor where minor = ?", createMinor);
+
+    //insert into the related tables: planned_majors and planned_minors
+    console.log(`insert into ljc_planned_majors values(${planid},${majorid[0].major_id})`);
+    console.log(`insert into ljc_planned_minors values(${planid},${minorid[0].minor_id})`);
+    for (let yr = catayear; yr < parseInt(catayear) + 4; ++yr) {
+      console.log(`insert into ljc_planned_years(${planid},${yr})`);
+    }
+
+    res.status(200).send({ message: "req" });
+  }
+  catch (err) {
+    res.status(500).send({ message: err });
+  }
   
-  const planid = await db.query(query, [req.session.username?req.session.username : semjaza, name]);
-  const majorid = await db.query("select major_id from ljc_major where major = ?", createMajor);
-  const minorid = await db.query("select minor_id from ljc_minor where minor = ?", createMinor);
-
-  //insert into the related tables: planned_majors and planned_minors
-  console.log(`insert into ljc_planned_majors values(${planid},${majorid[0].major_id})`);
-  console.log(`insert into ljc_planned_minors values(${planid},${minorid[0].minor_id})`);
-  for (let yr = catayear; yr < parseInt(catayear) + 4; ++yr) {
-    console.log(`insert into ljc_planned_years(${planid},${yr})`);
-  }
-
-  res.status(200).send({message: "req"});
 });
 
-router.get('/manageplan', async (req, res) => {
-  const db = makeDB();
-  let plans = await db.query("select * from ljc_plan where username=?",[req.session.username?req.session.username : "semjaza"]);
-  for (let m of plans) {
-    let maj = ""
-    let min = "";
-    for (let mid of await db.query("select major_id from ljc_planned_majors where plan_id=?",m.plan_id)) {
-      let currmaj = await db.query("select major from ljc_major where major_id = ?",mid.major_id);
-      maj = maj + ", " + currmaj[0].major;
+router.get('/manageplan', checkSession, async (req, res) => {
+  
+
+  try {
+    let plans = await db.query("select * from ljc_plan where username=?", [req.session.username ? req.session.username : "semjaza"]);
+    for (let m of plans) {
+      let maj = ""
+      let min = "";
+      for (let mid of await db.query("select major_id from ljc_planned_majors where plan_id=?", m.plan_id)) {
+        let currmaj = await db.query("select major from ljc_major where major_id = ?", mid.major_id);
+        maj = maj + ", " + currmaj[0].major;
+      }
+      for (let mid of await db.query("select minor_id from ljc_planned_minors where plan_id=?", m.plan_id)) {
+        let currmin = await db.query("select minor from ljc_minor where minor_id = ?", mid.minor_id);
+        min = min + ", " + currmin[0].minor;
+      }
+      maj = maj.substring(2);
+      min = min.substring(2);
+
+      m.plan_id = m.planname;
+      m.planname = maj;
+      m.username = min;
     }
-    for (let mid of await db.query("select minor_id from ljc_planned_minors where plan_id=?",m.plan_id)) {
-      let currmin = await db.query("select minor from ljc_minor where minor_id = ?",mid.minor_id);
-      min = min + ", " + currmin[0].minor;
-    }
-    maj = maj.substring(2);
-    min = min.substring(2);
-    
-    m.plan_id = m.planname;
-    m.planname = maj;
-    m.username = min;
+    res.status(200).send({ message: plans });
   }
-  res.status(200).send({message: plans});
+  catch (err) {
+    res.status(500).send({ message: err });
+  }
+  
 });
 
-router.get('/majors',async (req,res) => {
-  const db = makeDB();
-  const majors = await db.query("select * from ljc_major");
-  res.status(200).send({message: majors});
+router.get('/majors', async (req, res) => {
+
+  try {
+    const majors = await db.query("select * from ljc_major");
+    res.status(200).send({ message: majors });
+  }
+  catch (err) {
+    res.status(500).send({ message: err });
+  }
+  
 });
 
-router.get('/minors',async (req,res) => {
-  const db = makeDB();
-  const minors = await db.query("select * from ljc_minor");
-  res.status(200).send({message: minors});
+router.get('/minors', async (req, res) => {
+
+  try {
+    const minors = await db.query("select * from ljc_minor");
+    res.status(200).send({ message: minors });
+  }
+  catch (err) {
+    res.status(500).send({ message: err });
+  }
+  
 });
 
-router.get('/years',async (req,res) => {
-  const db = makeDB();
-  const years = await db.query("select * from ljc_catayear");
-  res.status(200).send({message: years});
-});
+router.get('/years', async (req, res) => {
 
-//END ADDED BY LUKE
+  try {
+    const years = await db.query("select * from ljc_catayear");
+    res.status(200).send({ message: years });
+  }
+  catch (err) {
+    res.status(500).send({ message: err });
+  }
+  
+});
 
 module.exports = router;

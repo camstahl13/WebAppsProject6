@@ -173,7 +173,7 @@ class TR extends Component {
                                                             return (
                                                                 <li key={i} draggable="true">
                                                                     {this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "XX-0000"} {this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Unknown name"}
-                                                                    <span class="remcourse" onClick={(e) => {
+                                                                    <span className="remcourse" onClick={(e) => {
                                                                         this.removeCourse(year_schedule.year, semester_schedule.semester, course)
                                                                     }}>&#10006;</span>
                                                                 </li>

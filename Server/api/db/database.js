@@ -11,7 +11,6 @@ function makeDB(){
 
     connection.connect(function(err) {
         if (err) throw err;
-        console.log("Connected!");
     });
 
     return{

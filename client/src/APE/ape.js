@@ -8,11 +8,11 @@ import Catalog from './catalog.js';
 
 function Signout() {
     let nav = useNavigate();
-    let auth = useAuth();
+    let { signout } = useAuth();
 
     let AuthSignout = async (e) => {
         e.preventDefault();
-        await auth.signout();
+        await signout();
         nav('/login');
     }
 
@@ -22,7 +22,7 @@ function Signout() {
         </form>
     );
 }
-
+const apiGetWithCred = {method: 'GET', credentials: "include"}
 class APE_Header extends Component {
     constructor(props) {
         super(props);
@@ -31,7 +31,7 @@ class APE_Header extends Component {
 
     async callAPI() {
         //Get Heading Infomation
-        await fetch("http://localhost:3001/api/heading", { method: 'GET', credentials: "include" })
+        await fetch("http://localhost:3001/api/heading", apiGetWithCred)
             .then(res => res.json())
             .then(res => this.setState({ heading: res[0] }));
     }
@@ -56,7 +56,7 @@ class APE_Header extends Component {
     }
 
     async getPlans() {
-        await fetch("http://localhost:3001/api/manageplan", {method: 'GET'})
+        await fetch("http://localhost:3001/api/manageplan", apiGetWithCred)
             .then(res => res.json())
             .then(res => this.setState({plans: res}));
     }
@@ -141,7 +141,7 @@ class BR extends Component {
     }
 
     async getCatalog() {
-        await fetch("http://localhost:3001/api/Catalog", { method: 'GET' })
+        await fetch("http://localhost:3001/api/Catalog", apiGetWithCred)
             .then(res => res.json())
             .then(res => this.setState({ catalog: res }));
     }

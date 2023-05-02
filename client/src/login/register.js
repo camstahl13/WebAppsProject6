@@ -1,23 +1,20 @@
-import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { useAuth } from '../services/AuthService';
+import { useNavigate , useLocation } from 'react-router-dom';
+import AuthConsumer from '../services/AuthService';
 import './index.css';
 
 
-export function LoginPage() {
-	const [state, setState] = useState("");
+export function RegisterPage() {
 	let nav = useNavigate();
-	const loginMessage = "";
-	let { signin } = useAuth();
+	let {signin} = AuthConsumer();
 
 	let login = (e) => {
 		e.preventDefault();
 		signin(e.target.uname.value, e.target.pass.value).then((res) => {
-			if(res.username)
-				nav('/', {state: {user: "res"}});
-			else
-				setState("Invalid username or password");
+			console.log("Rederect Here")
 
+			fetch("http://localhost:3001/api/heading", { method: 'GET', credentials: 'include', })
+			.then(res => res.json());
+			nav('/', {state: {user: "res"}});
 		});
 	}
 
@@ -50,11 +47,9 @@ export function LoginPage() {
 					<button className="btn login-btn" type="submit" id="sub">Sign In</button>
 					<a className="btn register-btn" href="register.php">Register</a>
 				</section>
-				<p classname="loginerror" style={{color: 'red'}}>{state}</p>
 			</form>
-			
-		</div>
+        </div>
 	);
 }
 
-export default LoginPage;
+export default RegisterPage;

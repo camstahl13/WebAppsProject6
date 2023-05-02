@@ -1,49 +1,70 @@
-import React, { useContext, createContext, useState } from "react";
+import React, { useContext, createContext, useState, useEffect } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
-const App = require('../App');
+import hash from "./sha256";
 
-const authContext = createContext();
+const AuthContext = React.createContext();
+export default AuthContext;
 
-function getContextState() {
-	let singedIn = AuthService.isAuthenticated();
-	return singedIn;
-}
-
-export function useAuth() {
-	return useContext(authContext);
+const User = {
+	username: '',
+	plan: -1,
+	isFaculty: false,
+	loggedIn: false,
 };
 
 
-export function PrivateRoute({ children, ...rest }) {
-	let auth = useAuth();
-	console.log(auth.user);
-	return auth.user ? <Outlet /> : <Navigate to="/login" />;
+function getContextState() {
+	let singedIn = localStorage.getItem("user");
+	return singedIn ? JSON.parse(singedIn) : User;
 }
 
 export function ProvideAuth({ children }) {
 	const auth = useUserAuth();
 	return (
-		<authContext.Provider value={auth}>
+		<AuthContext.Provider value={auth}>
 			{children}
-		</authContext.Provider>
+		</AuthContext.Provider>
 	);
 }
 
+export function AuthRequired({ children, ...res }) {
+	const { user } = useAuth();
+	/*AuthService.isAuthenticated()
+		.then(res => {
+			console.log(res.error);
+			if(res.error.status != 200){
+				user.loggedIn = false;
+				localStorage.removeItem("user");
+			}
+		})*/
+	return (user.loggedIn ? <Outlet /> : <Navigate to="/login" />);
+}
+
+export function useAuth() {
+	return useContext(AuthContext);
+}
+
+
 function useUserAuth() {
-	const [user, setUser] = useState(getContextState);
+	const [user, setUser] = useState(getContextState());
 
 	const signin = (uname, pass) => {
 		return AuthService.login(uname, pass)
 			.then((res) => {
-				if (res.loggedIn)
-					setUser(res.Username);
-				return res.status;
+				if (res.username === uname){
+					setUser(res);
+					localStorage.setItem("user", JSON.stringify(res));
+				}
+				return res;
 			});
 	};
 
 	const signout = () => {
 		return AuthService.logout()
-			.then(() => setUser(null));
+			.then(() => {
+				setUser(User)
+				localStorage.removeItem("user");	
+			});
 	};
 
 	return {
@@ -55,8 +76,8 @@ function useUserAuth() {
 
 export function Authenticate(e) {
 	e.preventDefault();
-	let auth = useAuth();
-	auth.signin(e.target.uname.value, e.target.pass.value);
+	let { signin } = useAuth();
+	signin(e.target.uname.value, e.target.pass.value);
 };
 
 const AuthService = {
@@ -65,76 +86,34 @@ const AuthService = {
 		const cfg = {
 			method: 'GET',
 			credentials: "include",
+			redirect: 'follow',
 			headers: { 'content-type': 'application/json' },
 		}
-		let response = {};
-
-			await fetch("http://localhost:3001/api/user", cfg)
-				.then(res => {
-					response.status = res.status;
-					return res.json();
-				})
-				.then(data => {
-					response.username = data.username
-				});
-
-		return response.statusCode === 200 ? response.username : null;
+		return await fetch("http://localhost:3001/api/user", cfg)
+			.then(res => {
+				return res.json();
+			});
 	},
 
 	async login(uname, pass) {
+		pass = await hash(pass);
 		const cfg = {
 			method: 'POST',
 			credentials: "include",
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ uname: uname, pass: pass }),
 		}
-		let response = {};
-		await fetch("http://localhost:3001/api/user/login", cfg)
-			.then(res => {
-				response.status = res.status;
-				return res.json();
-			})
-			.then(data => {
-				console.log(data.message);
-				response.username = data.username
-				App.setState({ user: data })
-
-			});
-
-		if (response.status === 200) {
-			User.loggedIn = true;
-			User.Username = response.username;
-		}
-		else
-			User.loggedIn = false;
-
-		console.log(User);
-
-		return new Promise((resolve, reject) => {
-			return resolve(User);
-		});
+		return fetch('http://localhost:3001/api/user/login', cfg)
+			.then(res => res.json());
 	},
 	logout() {
-
 		const logoutConfig = {
 			method: 'POST',
 			credentials: "include",
 		}
-		fetch("http://localhost:3001/api/user/logout", logoutConfig);
-
-		//User = {};
-		User.loggedIn = false;
-
-		return new Promise((resolve, reject) => {
-			return resolve("Logged out");
-		});
+		return fetch("http://localhost:3001/api/user/logout", logoutConfig);
 	},
 
-};
-
-const User = {
-	Username: '',
-	logined: false,
 };
 
 export const AuthSignout = async (e) => {

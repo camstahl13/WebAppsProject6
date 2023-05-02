@@ -1,3 +1,4 @@
+import AuthContext from '../services/AuthService.js';
 import { Component } from 'react';
 import { BL, BR } from './ape.js';
 import { TR } from './TR.js';
@@ -5,6 +6,7 @@ import { TL } from './TL.js';
 import { APE_Header } from './ape.js';
 
 class ApeHome extends Component {
+    static contextType = AuthContext;
     constructor(props) {
 		super(props);
 		this.state = { 
@@ -24,9 +26,8 @@ class ApeHome extends Component {
 
     async componentDidMount() {
         // THIS SHOULD NOT BE HARDCODED
-        const STUDENT = "campbell";
-
-        await this.getDefaultPlan(STUDENT);
+        const { user } = this.context;        
+        await this.getDefaultPlan(user.username);
         await this.getCatalog();
         await this.getRequirements();
         await this.getSchedule();

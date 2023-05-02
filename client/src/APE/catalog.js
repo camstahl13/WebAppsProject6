@@ -19,7 +19,7 @@ function Catalog(props) {
     
     if (props.courses.catalog != null) {
         for (let item of props.courses.catalog) {
-            tbody.push(<tr class={item.course_id}>
+            tbody.push(<tr className={item.course_id}>
                 <td>{item.course_id}</td>
                 <td>{item.title}</td>
                 <td>{item.description}</td>

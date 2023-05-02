@@ -4,17 +4,20 @@ import { Route, Routes, BrowserRouter as Router } from "react-router-dom";
 import './App.css';
 import './css/style.css';
 import LoginPage from './login/index.js';
-import { ProvideAuth, PrivateRoute } from './services/AuthService';
+import RegisterPage from './login/register.js';
+import { ProvideAuth, AuthRequired } from './services/AuthService';
 
-function App() {
+export default function App() {
+  //const [user, setUser] = useAuth();
+
   return (
     <ProvideAuth>
       <Router>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-          <Route path="/" element={<PrivateRoute />}>
+          <Route path="/" element={<AuthRequired />}>
             <Route path="/" element={ <ApeHome />} />
           </Route>
         </Routes>
@@ -22,5 +25,3 @@ function App() {
     </ProvideAuth>
   );
 }
-
-export default App;
