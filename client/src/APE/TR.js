@@ -10,21 +10,16 @@ class TR extends Component {
             facultynotes: null
         }
     }
-    
-    componentDidMount() {
-    }
 
     async getNotes() {
         await fetch(`http://localhost:3001/api/notes/${this.props.plan_id}`, 
                 {method: 'GET', credentials: "include"})
             .then(res => res.json())
             .then(res => {
-                if (res.studentnotes) {
+                if (res.studentnotes != null) {
                     this.setState({ studentnotes : res.studentnotes });
-                } else {
-                    this.setState({ studentnotes: ""});
                 }
-                if (res.facultynotes) {
+                if (res.facultynotes != null) {
                     this.setState({ facultynotes : res.facultynotes });
                 }
             });
@@ -205,7 +200,7 @@ class TR extends Component {
                                     <h3>Edit Plan Notes</h3>
                                 </div>
                                 <div className="notes-body">
-                                    {this.state.studentnotes &&
+                                    {this.state.studentnotes != null &&
                                     <>
                                         <label className="notes-label">Student Notes</label>
                                         <textarea id="studentnotes" rows="15" cols="75" 
@@ -214,7 +209,7 @@ class TR extends Component {
                                         </textarea>
                                     </>
                                     }
-                                    {this.state.facultynotes &&
+                                    {this.state.facultynotes != null &&
                                     <>
                                         <label className="notes-label">Faculty Notes</label>
                                         <textarea id="facultynotes" rows="15" cols="75"

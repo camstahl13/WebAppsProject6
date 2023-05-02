@@ -29,7 +29,6 @@ class TL extends Component {
       }
 
     render() {
-        console.log(this.props.catalog);
         return (
             <div id="TL">
                 <div className="sec-header">
@@ -48,9 +47,9 @@ class TL extends Component {
                                 <ul className="reqcat">
                                     {this.props.requirements[category].map((course, i) =>
                                             <Course idx={i}
-                                                course_id={this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "CS-0000"}
-                                                course_name={this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Name unknown"}
-                                                isPlanned={this.isPlanned(this.props.catalog.courses[course])}>
+                                                course_id={this.props.catalog && this.props.catalog.courses && this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "CS-0000"}
+                                                course_name={this.props.catalog && this.props.catalog.courses && this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Name unknown"}
+                                                isPlanned={this.props.catalog && this.props.catalog.courses && this.isPlanned(this.props.catalog.courses[course])}>
                                             </Course>)}
                                 </ul>
                             </AccordionItemPanel>
@@ -72,7 +71,6 @@ class Course extends Component {
                 key={this.props.course_id}
                 className={"reqcourse " + (this.props.isPlanned ? "planned" : "unplanned")}
                 onDragStart={(e) => {
-                    console.log(this.props.course_id);
                     e.dataTransfer.setData("text/plain", this.props.course_id);
                 }}>{this.props.course_id} {this.props.course_name}</li>
         )

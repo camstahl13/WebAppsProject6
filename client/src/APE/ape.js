@@ -71,7 +71,7 @@ class APE_Header extends Component {
     }
 
     render() {
-        const { heading } = this.state;
+        const { student, catalog_year, majors, minors } = this.props;
         return (
             <header className="bg-dark sticky-top" style={{ lineheight: '5px' }}>
                 <nav className="main-nav shadow">
@@ -83,16 +83,16 @@ class APE_Header extends Component {
                             <b>Catalog:</b>
                         </li>
                         <li>
-                            <p id="studentName">{heading ? heading.username : "Loading..."}</p>
-                            <p id="studentName">{heading ? heading.catalog_year : "Loading..."}</p>
+                            <p id="studentName">{student || "Loading..."}</p>
+                            <p id="studentName">{catalog_year || "Loading..."}</p>
                         </li>
                         <li>
                             <b>Majors:</b>
                             <b>Minors:</b>
                         </li>
                         <li>
-                            <p id="major">{heading ? heading.major : "Loading..."}</p>
-                            <p id="minor">{heading ? heading.minor : "Loading..."}</p>
+                            <p id="major">{majors ? majors.join(", ") : "Loading..."}</p>
+                            <p id="minor">{minors ? minors.join(", ") : "Loading..."}</p>
                         </li>
                     </ul>
                     <div id="actions">

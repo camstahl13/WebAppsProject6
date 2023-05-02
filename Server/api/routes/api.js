@@ -149,7 +149,6 @@ router.get('/schedule/:plan_id'/*, checkSession*/, async (req, res) => {
         semesters: []
       };
     });
-    console.log(sched);
 
     for (let planned_year of sched) {
       for (let term of ["FA", "SP", "SU"]) {
@@ -186,9 +185,7 @@ router.get('/catalog/:plan_id'/*, checkSession*/, async (req, res) => {
   const db = makeDB();
   try {
     let catalog_year_obj = await db.query(getCatalogYearQuery, [planId]);
-    console.log(catalog_year_obj);
     let catalog_year = catalog_year_obj[0].catalog_year;
-    console.log(catalog_year);
 
     let catalog_courses = await db.query(getCatalogCoursesQuery, [catalog_year]);
 
@@ -196,7 +193,6 @@ router.get('/catalog/:plan_id'/*, checkSession*/, async (req, res) => {
       year: catalog_year,
       courses: {}
     }
-    console.log(catalog_courses);
     for (let course of catalog_courses) {
       catalog.courses[course.course_id] = {
         id: course.course_id,
@@ -305,6 +301,57 @@ router.get('/requirements/:plan_id'/*, checkSession*/, async (req, res) => {
     }
 
     res.status(200).send({requirements: reqs});
+  } catch(error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
+
+const getStudentNotesQuery = `SELECT student_notes FROM ljc_plan WHERE plan_id = ?;`;
+const getFacultyNotesQuery = `SELECT faculty_notes FROM ljc_plan WHERE plan_id = ?;`;
+
+router.get('/notes/:plan_id'/*, checkSession*/, async (req,res) => {
+  const username = req.session.username;
+  const planId = req.params.plan_id;
+  console.log(`API request: Get notes for plan with ID ${planId}, Username - ${username}`);
+
+  const db = makeDB();
+  try {
+    let notes = {};
+
+    const student_notes_obj = await db.query(getStudentNotesQuery, [planId]);
+    notes.studentnotes = student_notes_obj[0].student_notes;
+
+    if (true /*req.session.isFaculty*/) {
+      const faculty_notes_obj = await db.query(getFacultyNotesQuery, [planId]);
+      notes.facultynotes = faculty_notes_obj[0].faculty_notes;
+    }
+
+    res.status(200).send(notes);
+  } catch(error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
+
+const setStudentNotesQuery = `UPDATE ljc_plan SET student_notes = ? WHERE plan_id = ?;`;
+const setFacultyNotesQuery = `UPDATE ljc_plan SET faculty_notes = ? WHERE plan_id = ?;`;
+
+router.post('/notes/:plan_id'/*, checkSession*/, async (req,res) => {
+  const username = req.session.username;
+  const planId = req.params.plan_id;
+  console.log(`API request: Set notes for plan with ID ${planId}, Username - ${username}`);
+
+  const db = makeDB();
+  try {
+    if (req.body.studentnotes) {
+      await db.query(setStudentNotesQuery, [req.body.studentnotes, planId]);
+    }
+    if (req.body.facultynotes && true /*req.session.isFaculty*/) {
+      await db.query(setFacultyNotesQuery, [req.body.facultynotes, planId]);
+    }
+
+    res.status(200).send({ message: "success" });
   } catch(error) {
     console.error(error);
     res.status(500).send(error.message);
@@ -457,20 +504,6 @@ router.get('/years',async (req,res) => {
   res.status(200).send({message: years});
 });
 
-router.post('/schedule/:plan',async (req,res) => {
-  res.status(200).send({message: req.body});
-});
-
-router.get('/notes/:plan',async (req,res) => {
-  res.status(200).send({
-    studentnotes: "Here are example student notes",
-    facultynotes: "Here are example faculty notes"
-  });
-});
-
-router.post('/notes/:plan',async (req,res) => {
-  res.status(200).send({message: req.body});
-});
 //END ADDED BY LUKE
 
 module.exports = router;
