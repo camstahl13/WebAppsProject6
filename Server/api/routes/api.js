@@ -36,7 +36,7 @@ router.get('/user', checkSession, async (req, res) => {
 router.post('/user/logout', (req, res) => {
   console.log("API REQEST ->  LOGOUT user:" + req.session.username);
   req.session.destroy();
-  res.render('api', { title: 'API working properly', loggedin: "Logged Out" })
+  res.status(200).send({ message: "Logged Out" });
 });
 
 // Endpoint for login -> /api/user/login
