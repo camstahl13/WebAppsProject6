@@ -2,6 +2,7 @@ import { Component } from 'react';
 import { BL, BR } from './ape.js';
 import { TR } from './TR.js';
 import { TL } from './TL.js';
+import { APE_Header } from './ape.js';
 
 class ApeHome extends Component {
     constructor(props) {
@@ -143,28 +144,34 @@ class ApeHome extends Component {
     render() {
         return (
             <>
-                <TL requirements={this.state.requirements}
-                    schedule={this.state.schedule}
-                    catalog={this.state.catalog} />
-                <TR schedule={this.state.schedule} 
-                    setSchedule={(sched) => {
-                        this.setState({ schedule: sched });
-                        let res = { schedule: sched };
+                <APE_Header student={this.state.student}
+                            catalog_year={this.state.catalog_year}
+                            majors={this.state.majors}
+                            minors={this.state.minors}/>
+                <main id="main">
+                    <TL requirements={this.state.requirements}
+                        schedule={this.state.schedule}
+                        catalog={this.state.catalog} />
+                    <TR schedule={this.state.schedule} 
+                        setSchedule={(sched) => {
+                            this.setState({ schedule: sched });
+                            let res = { schedule: sched };
 
-                        fetch(`http://localhost:3001/api/schedule/${this.state.plan_id}`, {
-                            method: 'POST',
-                            credentials: 'include',
-                            headers: {'Content-Type':'application/json'},
-                            body: JSON.stringify(res)
-                        });
-                    }}
-                    current_year={this.state.current_year}
-                    curent_semester={this.state.current_semester}
-                    catalog_year={this.state.catalog_year}
-                    catalog={this.state.catalog}
-                    plan_id={this.state.plan_id} />
-                <BL />
-                <BR catalog={this.state.catalog}/>
+                            fetch(`http://localhost:3001/api/schedule/${this.state.plan_id}`, {
+                                method: 'POST',
+                                credentials: 'include',
+                                headers: {'Content-Type':'application/json'},
+                                body: JSON.stringify(res)
+                            });
+                        }}
+                        current_year={this.state.current_year}
+                        curent_semester={this.state.current_semester}
+                        catalog_year={this.state.catalog_year}
+                        catalog={this.state.catalog}
+                        plan_id={this.state.plan_id} />
+                    <BL />
+                    <BR catalog={this.state.catalog}/>
+                </main>
             </>
         )
     };

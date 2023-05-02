@@ -76,40 +76,217 @@ router.post('/user/login', async (req, res) => {
 
 // Define the SQL queries as constants
 const getPlannedYearsQuery = `SELECT * FROM ljc_planned_years WHERE plan_id = ?;`;
-const getPlannedCoursesQuery = `select pc.course_id, c.title, c.credits, year, term 
-from ljc_planned_courses as pc inner join ljc_course as c on pc.course_id = c.course_id 
-where plan_id = ?;`;
+const getPlannedCoursesQuery = `SELECT course_id FROM ljc_planned_courses WHERE plan_id = ? && year = ? && term = ?;`;
 
+const delPlannedYearsQuery = `DELETE FROM ljc_planned_years WHERE plan_id = ?;`;
+const delPlannedCoursesQuery = `DELETE from ljc_planned_courses WHERE plan_id = ?;`;
 
-router.get('/plan/:plan_id', checkSession, async (req, res) => {
+const insPlannedYearQuery = `INSERT INTO ljc_planned_years(plan_id, year) VALUES(?, ?);`
+const insPlannedCourseQuery = `INSERT INTO ljc_planned_courses(plan_id, course_id, year, term) VALUES(?, ?, ?, ?);`
+
+router.post('/schedule/:plan_id', checkSession, async(req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
-  console.log(`API request: Get plan with ID ${planId}, Username - ${username}`);
+  console.log(`API request: Set schedule for plan with ID ${planId}, Username - ${username}`);
 
   const db = makeDB();
+
   try {
-    // Get the planned years and courses from the database
-    const years = await db.query(getPlannedYearsQuery, [planId]);
-    const courses = await db.query(getPlannedCoursesQuery, [planId]);
+    await db.query(delPlannedYearsQuery, [planId]);
+    await db.query(delPlannedCoursesQuery, [planId]);
+    const schedule = req.body.schedule;
 
-    // Group the courses by year
-    const plan = years.map(year => {
-      const yearCourses = courses.filter(course => course.year === year.year);
-      const terms = { FA: {}, SP: {}, SU: {} };
-      yearCourses.forEach(course => {
-        terms[course.term][course.course_id] = { title: course.title, credits: course.credits};
-      });
-      return { year: year.year, term: terms };
-    });
-    
-
-    res.status(200).send(plan);
+    for (const planned_year of schedule) {
+      await db.query(insPlannedYearQuery, [planId, planned_year.year]);
+      for (const planned_semester of planned_year.semesters) {
+        for (const planned_course of planned_semester.courses) {
+          await db.query(insPlannedCourseQuery, [planId, planned_course, planned_year.year, planned_semester.semester]);
+        }
+      }
+    }
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
   }
 });
 
+router.get('/schedule/:plan_id', checkSession, async (req, res) => {
+  const username = req.session.username;
+  const planId = req.params.plan_id;
+  console.log(`API request: Get schedule for plan with ID ${planId}, Username - ${username}`);
+
+  const db = makeDB();
+  try {
+    // Get the planned years and courses from the database
+    const planned_years = await db.query(getPlannedYearsQuery, [planId]);
+
+    let sched = planned_years.map(planned_year => {
+      return {
+        year: planned_year.year,
+        semesters: []
+      };
+    });
+    console.log(sched);
+
+    for (let planned_year of sched) {
+      for (let term of ["FA", "SP", "SU"]) {
+        const courses = await db.query(getPlannedCoursesQuery, [planId, planned_year.year, term]);
+
+        let semester = { semester: term, courses: [] };
+
+        for (let course of courses) {
+          semester.courses.push(course.course_id);
+        }
+
+        planned_year.semesters.push(semester);
+      }
+    }
+    
+    res.status(200).send({schedule: sched});
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
+
+const getCatalogYearQuery = `SELECT catalog_year FROM ljc_plan WHERE plan_id = ?;`;
+const getCatalogCoursesQuery = `SELECT course.course_id, course.title, course.description, course.credits
+                                FROM ljc_course as course
+                                  JOIN ljc_catalog as cata ON course.course_id = cata.course_id
+                                WHERE cata.catalog_year = ?;`;
+
+router.get('/catalog/:plan_id', checkSession, async (req, res) => {
+  const username = req.session.username;
+  const planId = req.params.plan_id;
+  console.log(`API request: Get catalog for plan with ID ${planId}, Username - ${username}`);
+
+  const db = makeDB();
+  try {
+    let catalog_year_obj = await db.query(getCatalogYearQuery, [planId]);
+    console.log(catalog_year_obj);
+    let catalog_year = catalog_year_obj[0].catalog_year;
+    console.log(catalog_year);
+
+    let catalog_courses = await db.query(getCatalogCoursesQuery, [catalog_year]);
+
+    let catalog = {
+      year: catalog_year,
+      courses: {}
+    }
+    console.log(catalog_courses);
+    for (let course of catalog_courses) {
+      catalog.courses[course.course_id] = {
+        id: course.course_id,
+        name: course.title,
+        description: course.description,
+        credits: course.credits
+      };
+    }
+
+    res.status(200).send({catalog: catalog});
+  } catch(error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
+
+const getPlanInfo = `SELECT username, catalog_year FROM ljc_plan WHERE plan_id = ?;`;
+const getPlanMajors = `SELECT major.major as major_name
+                        FROM ljc_plan AS plan
+                          JOIN ljc_planned_majors AS planned_major ON plan.plan_id = planned_major.plan_id
+                          JOIN ljc_major AS major ON planned_major.major_id = major.major_id
+                        WHERE plan.plan_id = ?;`;
+const getPlanMinors = `SELECT minor.minor as minor_name
+                        FROM ljc_plan AS plan
+                          JOIN ljc_planned_minors AS planned_minor ON plan.plan_id = planned_minor.plan_id
+                          JOIN ljc_minor AS minor ON planned_minor.minor_id = minor.minor_id
+                        WHERE plan.plan_id = ? && minor.minor_id != 5;`;
+
+router.get('/info/:plan_id'/*, checkSession*/, async (req, res) => {
+  const username = req.session.username;
+  const planId = req.params.plan_id;
+  console.log(`API request: Get general info for plan with ID ${planId}, Username - ${username}`);
+
+  const db = makeDB();
+  try {
+    let info = {
+      student: null,
+      catalog_year: null,
+      majors: [],
+      minors: []
+    };
+
+    const plan_info = await db.query(getPlanInfo, [planId]);
+    info.student = plan_info[0].username;
+    info.catalog_year = plan_info[0].catalog_year;
+
+    const plan_majors = await db.query(getPlanMajors, [planId]);
+    for (let major of plan_majors) {
+      info.majors.push(major.major_name);
+    }
+
+    const plan_minors = await db.query(getPlanMinors, [planId]);
+    for (let minor of plan_minors) {
+      info.minors.push(minor.minor_name);
+    }
+
+    res.status(200).send(info);
+  } catch(error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
+
+
+
+const getRequiredMajorCourses = `SELECT major.major AS maj, major_requirement.category AS cat, major_requirement.course_id AS course 
+                                  FROM ljc_plan AS plan
+                                    JOIN ljc_planned_majors AS planned_major ON plan.plan_id = planned_major.plan_id
+                                    JOIN ljc_major AS major ON planned_major.major_id = major.major_id
+                                    JOIN ljc_major_requirements AS major_requirement ON planned_major.major_id = major_requirement.major_id
+                                  WHERE plan.plan_id = ?;`;
+
+const getRequiredMinorCourses = `SELECT minor.minor AS min, minor_requirement.course_id AS course 
+                                  FROM ljc_plan AS plan
+                                    JOIN ljc_planned_minors AS planned_minor ON plan.plan_id = planned_minor.plan_id
+                                    JOIN ljc_minor AS minor ON planned_minor.minor_id = minor.minor_id
+                                    JOIN ljc_minor_requirements AS minor_requirement ON planned_minor.minor_id = minor_requirement.minor_id
+                                  WHERE plan.plan_id = ?;`;
+
+router.get('/requirements/:plan_id', checkSession, async (req, res) => {
+  const username = req.session.username;
+  const planId = req.params.plan_id;
+  console.log(`API request: Get catalog for plan with ID ${planId}, Username - ${username}`);
+
+  const db = makeDB();
+  try {
+    let reqs = {};
+
+    const requiredMajorCourses = await db.query(getRequiredMajorCourses, [planId]);
+    const requiredMinorCourses = await db.query(getRequiredMinorCourses, [planId]);
+
+    for (let requiredMajorCourse of requiredMajorCourses) {
+      let category = requiredMajorCourse.maj + " " + requiredMajorCourse.cat;
+      if (!reqs[category]) {
+        reqs[category] = [];
+      }
+      reqs[category].push(requiredMajorCourse.course);
+    }
+
+    for (let requiredMinorCourse of requiredMinorCourses) {
+      let category = requiredMinorCourse.min + (requiredMinorCourse.min == "Gen Eds" ? "" : " Minor");
+      if (!reqs[category]) {
+        reqs[category] = [];
+      }
+      reqs[category].push(requiredMinorCourse.course);
+    }
+
+    res.status(200).send({requirements: reqs});
+  } catch(error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
 
 //get plans
 
