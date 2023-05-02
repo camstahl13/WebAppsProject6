@@ -27,7 +27,7 @@ export function ProvideAuth({ children }) {
 	);
 }
 
-export function AuthRequired({ children, ...res }) {
+export function AuthRequiredStudent({ children, ...res }) {
 	const { user } = useAuth();
 	/*AuthService.isAuthenticated()
 		.then(res => {
@@ -38,6 +38,11 @@ export function AuthRequired({ children, ...res }) {
 			}
 		})*/
 	return (user.loggedIn ? <Outlet /> : <Navigate to="/login" />);
+}
+
+export function AuthRequiredFaculty({children, ...res}) {
+	const {user} = useAuth();
+	return (user.loggedIn && user.is_faculty === 1? <Outlet /> : <Navigate to ="/login"/>);
 }
 
 export function useAuth() {

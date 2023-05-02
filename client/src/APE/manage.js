@@ -16,14 +16,19 @@ function ManagePlan(props) {
         let table = document.createElement('table');
         let tbody = document.createElement('tbody');
         let toptr = document.createElement('tr');
-        toptr.innerHTML="<th>Plan</th><th>Major</th><th>Minor</th><th>Default</th><th>Catalog</th>"
+        toptr.innerHTML="<th>Plan</th><th>Major</th><th>Minor</th><th>Catalog</th><th>Default</th>"
         tbody.appendChild(toptr);
         
         if (props.plans) {
             for (let p of props.plans.message) {
                 let tr = document.createElement('tr');
+                tr.id = p.plan_id;
+                tr.onclick = () => {
+                    props.setPlanId(tr.id);
+                    body.removeChild(div);
+                }
                 tr.className="planitem";
-                tr.innerHTML=`<td>${p.plan_id}</td><td>${p.planname}</td><td>${p.username}</td><td>${p.catalog_year}</td><td>${p.default_}</td>`;
+                tr.innerHTML=`<td>${p.planname}</td><td>${p.majors}</td><td>${p.minors}</td><td>${p.catalog_year}</td><td>${p.default}</td>`;
                 tbody.appendChild(tr);
             }
         }

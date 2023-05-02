@@ -13,8 +13,10 @@ export function LoginPage() {
 	let login = (e) => {
 		e.preventDefault();
 		signin(e.target.uname.value, e.target.pass.value).then((res) => {
-			if(res.username)
-				nav('/', {state: {user: "res"}});
+			if(res.username) {
+				let path = res.is_faculty ? `/faculty/${res.username}` : `/student/${res.username}`;
+				nav(path, {state: {user: res}});
+			}
 			else
 				setState("Invalid username or password");
 

@@ -100,8 +100,8 @@ class APE_Header extends Component {
                         <div className="dropdown btt-primary">
                             <span>Options</span>
                             <div className="dropdown-content shadow">
-                                <CreatePlan majors={this.state.majors} minors={this.state.minors} years={this.state.catayears}/>
-                                <ManagePlan plans={this.state.plans}/>
+                                <CreatePlan plan_id={this.props.plan_id} majors={this.state.majors} minors={this.state.minors} years={this.state.catayears}/>
+                                <ManagePlan plans={this.state.plans} setPlanId={this.props.setPlanId}/>
                                 <p>Print</p>
                                 <p>Show Grades</p>
                                 <p>Wavers</p>

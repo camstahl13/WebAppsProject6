@@ -12,6 +12,7 @@ const unauthorizedMessage = {
 const db = makeDB();
 // Middleware to check session
 const checkSession = (req, res, next) => {
+
   if (!req.session.username) {
     return res.status(403).send(unauthorizedMessage);
   }
@@ -50,7 +51,8 @@ router.post('/user/login', async (req, res) => {
 
   try {
     const hashedPassword = sha256.sha256(pass);
-    const results = await db.query('SELECT username, first_name, last_name, is_faculty FROM ljc_user WHERE username = ? AND password = ?', [uname, hashedPassword]);
+    console.log(uname, pass);
+    const results = await db.query('SELECT username, first_name, last_name, is_faculty FROM ljc_user WHERE username = ? AND password = ?', [uname, pass]);
 
     //If the user is found in the database, set the session username to the username
     if (results.length > 0) {
@@ -166,11 +168,8 @@ router.get('/schedule/:plan_id', checkSession, async (req, res) => {
   } 
 });
 
-const getCatalogYearQuery = `SELECT catalog_year FROM ljc_plan WHERE plan_id = ?;`;
-const getCatalogCoursesQuery = `SELECT course.course_id, course.title, course.description, course.credits
-                                FROM ljc_course as course
-                                  JOIN ljc_catalog as cata ON course.course_id = cata.course_id
-                                WHERE cata.catalog_year = ?;`;
+const getCatalogYearQuery = `SELECT catalog_year FROM ljc_plan WHERE plan_id = ?`;
+const getCatalogCoursesQuery = `SELECT * FROM ljc_course, ljc_catalog where ljc_course.course_id = ljc_catalog.course_id and ljc_catalog.catalog_year = ?`;
 
 router.get('/catalog/:plan_id', checkSession, async (req, res) => {
   const username = req.session.username;
@@ -180,9 +179,10 @@ router.get('/catalog/:plan_id', checkSession, async (req, res) => {
 
   try {
     let catalog_year_obj = await db.query(getCatalogYearQuery, [planId]);
-    let catalog_year = catalog_year_obj.catalog_year;
+    let catalog_year = catalog_year_obj[0].catalog_year;
 
     let catalog_courses = await db.query(getCatalogCoursesQuery, [catalog_year]);
+    console.log(catalog_courses);
 
     let catalog = {
       year: catalog_year,
@@ -445,24 +445,23 @@ router.get('/help', function (req, res) {
 
 const query = "select plan_id from ljc_plan where username=? and planname=?";
 
-router.post('/createplan', async (req, res) => {
-  //ADD CHECK SESSION!!! (and remove semjaza)
-
-  const semjaza = "semjaza";
+router.post('/createplan/:plan_id', checkSession, async (req, res) => {
   let { name, createMajor, createMinor, catayear } = req.body;
-
+  const uname = await db.query(`select username from ljc_plan where plan_id=${req.params.plan_id}`)
+  let foruser=uname[0].username;
+  console.log(foruser);
   //name conflict check
   try {
-    let namechk = await db.query(query, [req.session.username ? req.session.username : semjaza, name]);
+    let namechk = await db.query(query, [foruser, name]);
     while (namechk.length > 0) {
       name = "_" + name;
-      namechk = await db.query(query, [req.session.username ? req.session.username : semjaza, name]);
+      namechk = await db.query(query, [forname, name]);
     }
 
     //create plan, get relevant data chunks for the insertions in related tables
-    console.log(`insert into ljc_plan values(NULL,${name},${req.session.username ? req.session.username : "session invalid..."},${catayear},0`);
+    console.log(`insert into ljc_plan values(NULL,${name},${forname},${catayear},0)`);
 
-    const planid = await db.query(query, [req.session.username ? req.session.username : semjaza, name]);
+    const planid = await db.query(query, [foruser, name]);
     const majorid = await db.query("select major_id from ljc_major where major = ?", createMajor);
     const minorid = await db.query("select minor_id from ljc_minor where minor = ?", createMinor);
 
@@ -486,6 +485,7 @@ router.get('/manageplan', checkSession, async (req, res) => {
 
   try {
     let plans = await db.query("select * from ljc_plan where username=?", [req.session.username ? req.session.username : "semjaza"]);
+    let displayplans = [];
     for (let m of plans) {
       let maj = ""
       let min = "";
@@ -493,18 +493,16 @@ router.get('/manageplan', checkSession, async (req, res) => {
         let currmaj = await db.query("select major from ljc_major where major_id = ?", mid.major_id);
         maj = maj + ", " + currmaj[0].major;
       }
-      for (let mid of await db.query("select minor_id from ljc_planned_minors where plan_id=?", m.plan_id)) {
+      for (let mid of await db.query("select minor_id from ljc_planned_minors where plan_id=? && minor_id != 5", m.plan_id)) {
         let currmin = await db.query("select minor from ljc_minor where minor_id = ?", mid.minor_id);
         min = min + ", " + currmin[0].minor;
       }
       maj = maj.substring(2);
       min = min.substring(2);
 
-      m.plan_id = m.planname;
-      m.planname = maj;
-      m.username = min;
+      displayplans.push({plan_id: m.plan_id, planname: m.planname, majors: maj, minors: min, catalog_year: m.catalog_year, default: m.default_});
     }
-    res.status(200).send({ message: plans });
+    res.status(200).send({ message: displayplans });
   }
   catch (err) {
     res.status(500).send({ message: err });

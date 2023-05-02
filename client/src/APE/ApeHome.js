@@ -4,11 +4,17 @@ import { BL, BR } from './ape.js';
 import { TR } from './TR.js';
 import { TL } from './TL.js';
 import { APE_Header } from './ape.js';
+import {useParams} from "react-router-dom";
+
+function withParams(Component) {
+    return props => <Component {...props} params={useParams()} />
+}
 
 class ApeHome extends Component {
     static contextType = AuthContext;
     constructor(props) {
 		super(props);
+        let {name} = this.props.params;
 		this.state = { 
             requirements: {}, 
             catalog: {},
@@ -24,14 +30,17 @@ class ApeHome extends Component {
         };
 	}
 
-    async componentDidMount() {
-        // THIS SHOULD NOT BE HARDCODED
-        const { user } = this.context;        
-        await this.getDefaultPlan(user.username);
+    async getAllData() {
         await this.getCatalog();
         await this.getRequirements();
         await this.getSchedule();
-        await this.getInfo();  
+        await this.getInfo();
+    }
+
+    async componentDidMount() {
+        const name = this.props.params.name;
+        await this.getDefaultPlan(name);
+        await this.getAllData();
     }
 
     async getDefaultPlan(student) {
@@ -82,7 +91,12 @@ class ApeHome extends Component {
                 <APE_Header student={this.state.student}
                             catalog_year={this.state.catalog_year}
                             majors={this.state.majors}
-                            minors={this.state.minors}/>
+                            minors={this.state.minors}
+                            plan_id={this.state.plan_id}
+                            setPlanId={(pid) => {
+                                this.setState({plan_id: pid});
+                                this.getAllData();
+                            }}/>
                 <main id="main">
                     <TL requirements={this.state.requirements}
                         schedule={this.state.schedule}
@@ -112,4 +126,4 @@ class ApeHome extends Component {
     };
 }
 
-export {ApeHome};
+export default withParams(ApeHome);
