@@ -94,6 +94,8 @@ router.get('/default/:student'/*, checkSession*/, async(req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
+  } finally {
+    db.close();
   }
 });
 
@@ -127,6 +129,8 @@ router.post('/schedule/:plan_id'/*, checkSession*/, async(req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
+  } finally {
+    db.close();
   }
 });
 
@@ -168,6 +172,8 @@ router.get('/schedule/:plan_id'/*, checkSession*/, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send(error.message);
+  } finally {
+    db.close();
   }
 });
 
@@ -206,6 +212,8 @@ router.get('/catalog/:plan_id'/*, checkSession*/, async (req, res) => {
   } catch(error) {
     console.error(error);
     res.status(500).send(error.message);
+  } finally {
+    db.close();
   }
 });
 
@@ -253,6 +261,8 @@ router.get('/info/:plan_id'/*, checkSession*/, async (req, res) => {
   } catch(error) {
     console.error(error);
     res.status(500).send(error.message);
+  } finally {
+    db.close();
   }
 });
 
@@ -304,6 +314,8 @@ router.get('/requirements/:plan_id'/*, checkSession*/, async (req, res) => {
   } catch(error) {
     console.error(error);
     res.status(500).send(error.message);
+  } finally {
+    db.close();
   }
 });
 
@@ -331,6 +343,8 @@ router.get('/notes/:plan_id'/*, checkSession*/, async (req,res) => {
   } catch(error) {
     console.error(error);
     res.status(500).send(error.message);
+  } finally {
+    db.close();
   }
 });
 
@@ -355,6 +369,8 @@ router.post('/notes/:plan_id'/*, checkSession*/, async (req,res) => {
   } catch(error) {
     console.error(error);
     res.status(500).send(error.message);
+  } finally {
+    db.close();
   }
 });
 
