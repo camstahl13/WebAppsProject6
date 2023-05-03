@@ -1,7 +1,6 @@
 import { Component } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/AuthService';
-import Draggable, {DraggableCore} from 'react-draggable';
 import CreatePlan from './create.js';
 import ManagePlan from './manage.js';
 import Catalog from './catalog.js';
@@ -29,13 +28,6 @@ class APE_Header extends Component {
         this.state = { apiResponse: "", heading: {}, majors: {}, minors: {}, catayears: {}, plans: {} };
     }
 
-    async callAPI() {
-        //Get Heading Infomation
-        await fetch("http://localhost:3001/api/heading", apiGetWithCred)
-            .then(res => res.json())
-            .then(res => this.setState({ heading: res[0] }));
-    }
-
     //LUKE ADDED
     async getMajors() {
         await fetch("http://localhost:3001/api/majors", { method: 'GET'})
@@ -56,18 +48,17 @@ class APE_Header extends Component {
     }
 
     async getPlans() {
-        await fetch("http://localhost:3001/api/manageplan", apiGetWithCred)
+        return fetch(`http://localhost:3001/api/manageplan/${this.props.plan_id}`, apiGetWithCred)
             .then(res => res.json())
             .then(res => this.setState({plans: res}));
     }
     //END LUKE ADDED
 
     componentDidMount() {
-        this.callAPI();
         this.getMajors();
         this.getMinors();
         this.getYears();
-        this.getPlans();
+        //this.getPlans();
     }
 
     render() {
@@ -101,7 +92,7 @@ class APE_Header extends Component {
                             <span>Options</span>
                             <div className="dropdown-content shadow">
                                 <CreatePlan getPlans={() => {this.getPlans()}} plan_id={this.props.plan_id} majors={this.state.majors} minors={this.state.minors} years={this.state.catayears} setPlanId={this.props.setPlanId}/>
-                                <ManagePlan plans={this.state.plans} setPlanId={this.props.setPlanId}/>
+                                <ManagePlan plans={this.state.plans} setPlanId={this.props.setPlanId} getPlans={() => { return this.getPlans()}}/>
                                 <p>Print</p>
                                 <p>Show Grades</p>
                                 <p>Wavers</p>

@@ -9,11 +9,11 @@ function Catalog(props) {
         tbody.filter((item) => {
             for (let td of item.props.children) {
                 if (td.props.children.toString().toLowerCase().includes(e.target.value.toLowerCase())) {
-                    document.getElementsByClassName(item.props.class)[0].setAttribute("style","display: table-row");
+                    document.getElementsByClassName(item.props.className)[0].setAttribute("style","display: table-row");
                     return true;
                 }
             }
-            document.getElementsByClassName(item.props.class)[0].setAttribute("style","display: none");
+            document.getElementsByClassName(item.props.className)[0].setAttribute("style","display: none");
         });
     }
     

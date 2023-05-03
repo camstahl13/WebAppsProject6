@@ -1,15 +1,19 @@
 import AuthContext from '../services/AuthService.js';
+//import { withNavigation } from 'react-navigation';
 import { Component } from 'react';
 import { BL, BR } from './ape.js';
 import { TR } from './TR.js';
 import { TL } from './TL.js';
 import { APE_Header } from './ape.js';
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 
 function withParams(Component) {
     return props => <Component {...props} params={useParams()} />
 }
 
+function withNav(Component) {
+    return props => <Component {...props} nav={useNavigate()} />
+}
 class ApeHome extends Component {
     static contextType = AuthContext;
     constructor(props) {
@@ -23,11 +27,14 @@ class ApeHome extends Component {
             student: null,
             majors: [],
             minors: [],
-            current_year: null,
-            current_semester: null,
+            current_year: 2022,
+            current_semester: "SP",
             catalog_year: null,
             schedule: []
         };
+        
+        
+        
     }
 
     async getAllData() {
@@ -39,6 +46,12 @@ class ApeHome extends Component {
 
     async componentDidMount() {
         const name = this.props.params.name;
+        const { user } = await this.context;
+        if(!user.is_faculty && user.username !== name) {
+            this.props.nav("/");
+        }
+
+
         await this.getDefaultPlan(name);
         //await this.getAllData();
     }
@@ -125,4 +138,4 @@ class ApeHome extends Component {
     };
 }
 
-export default withParams(ApeHome);
+export default withNav(withParams(ApeHome));

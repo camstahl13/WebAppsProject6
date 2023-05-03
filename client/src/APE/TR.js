@@ -12,27 +12,27 @@ class TR extends Component {
     }
 
     async getNotes() {
-        await fetch(`http://localhost:3001/api/notes/${this.props.plan_id}`, 
-                {method: 'GET', credentials: "include"})
+        await fetch(`http://localhost:3001/api/notes/${this.props.plan_id}`,
+            { method: 'GET', credentials: "include" })
             .then(res => res.json())
             .then(res => {
                 if (res.studentnotes != null) {
-                    this.setState({ studentnotes : res.studentnotes });
+                    this.setState({ studentnotes: res.studentnotes });
                 }
                 if (res.facultynotes != null) {
-                    this.setState({ facultynotes : res.facultynotes });
+                    this.setState({ facultynotes: res.facultynotes });
                 }
             });
     }
 
     isScheduled(year, semester, current_year, current_semester) {
         return (current_year > year
-                    || (current_year == year
-                            && (current_semester == "FA"
-                                    || (current_semester == "SU"
-                                            && semester != "FA")
-                                    || (current_semester == "SP"
-                                            && semester == "SP")))) ? "scheduled" : "unscheduled";
+            || (current_year == year
+                && (semester == "FA"
+                    || (semester == "SP"
+                        && current_semester != "FA")
+                    || (semester == "SU"
+                        && current_semester == "SU")))) ? "scheduled" : "unscheduled";
     }
 
     sumCredits(courses) {
@@ -128,10 +128,10 @@ class TR extends Component {
             res.facultynotes = this.state.facultynotes;
         }
         fetch(`http://localhost:3001/api/notes/${this.props.plan_id}`, {
-                            method: 'POST',
-                            credentials: 'include',
-                            headers: {'Content-Type':'application/json'},
-                            body: JSON.stringify(res)
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(res)
         });
     }
 
@@ -153,17 +153,17 @@ class TR extends Component {
                             <li key={i} className="year">
                                 <ul className="semesters">
                                     {year_schedule.semesters.map((semester_schedule, i) => {
+                                        let iss = this.isScheduled(year_schedule.year, semester_schedule.semester, this.props.current_year, this.props.current_semester);
                                         return (
                                             <li key={i}
-                                                className={this.isScheduled(year_schedule.year, 
-                                                                            semester_schedule.semester, 
-                                                                            this.props.current_year,
-                                                                            this.props.current_semester)}
+                                                className={iss}
                                                 onDragOver={(e) => {
                                                     e.preventDefault();
                                                 }}
                                                 onDrop={(e) => {
-                                                    this.addCourse(year_schedule.year, semester_schedule.semester, e.dataTransfer.getData("text/plain"))
+                                                    if (iss == "unscheduled") {
+                                                        this.addCourse(year_schedule.year, semester_schedule.semester, e.dataTransfer.getData("text/plain"));
+                                                    }
                                                 }}>
                                                 <p className="sem">{semester_schedule.semester + " " + (year_schedule.year + (semester_schedule.semester == "FA" ? 0 : 1))}</p>
                                                 <p className="hours text-secondary">{this.sumCredits(semester_schedule.courses)}</p>
@@ -171,11 +171,12 @@ class TR extends Component {
                                                     <ul className="course-list">
                                                         {semester_schedule.courses.map((course, i) => {
                                                             return (
-                                                                <li key={i} draggable="true">
+                                                                <li key={i}>
                                                                     {this.props.catalog.courses[course] ? this.props.catalog.courses[course].id : "XX-0000"} {this.props.catalog.courses[course] ? this.props.catalog.courses[course].name : "Unknown name"}
-                                                                    <span className="remcourse" onClick={(e) => {
-                                                                        this.removeCourse(year_schedule.year, semester_schedule.semester, course)
-                                                                    }}>&#10006;</span>
+                                                                    {iss == "unscheduled" ?
+                                                                        <span className="remcourse" onClick={(e) => {
+                                                                            this.removeCourse(year_schedule.year, semester_schedule.semester, course)
+                                                                        }}>&#10006;</span> : null}
                                                                 </li>
                                                             )
                                                         })}
@@ -201,29 +202,29 @@ class TR extends Component {
                                 </div>
                                 <div className="notes-body">
                                     {this.state.studentnotes != null &&
-                                    <>
-                                        <label className="notes-label">Student Notes</label>
-                                        <textarea id="studentnotes" rows="15" cols="75" 
-                                            onChange={(e) => { this.setState({ studentnotes: e.target.value }) }}
-                                            defaultValue={this.state.studentnotes}>
-                                        </textarea>
-                                    </>
+                                        <>
+                                            <label className="notes-label">Student Notes</label>
+                                            <textarea id="studentnotes" rows="15" cols="75"
+                                                onChange={(e) => { this.setState({ studentnotes: e.target.value }) }}
+                                                defaultValue={this.state.studentnotes}>
+                                            </textarea>
+                                        </>
                                     }
                                     {this.state.facultynotes != null &&
-                                    <>
-                                        <label className="notes-label">Faculty Notes</label>
-                                        <textarea id="facultynotes" rows="15" cols="75"
-                                            onChange={(e) => { this.setState({ facultynotes: e.target.value })}}
-                                            defaultValue={this.state.facultynotes}>
-                                        </textarea>
-                                    </>
+                                        <>
+                                            <label className="notes-label">Faculty Notes</label>
+                                            <textarea id="facultynotes" rows="15" cols="75"
+                                                onChange={(e) => { this.setState({ facultynotes: e.target.value }) }}
+                                                defaultValue={this.state.facultynotes}>
+                                            </textarea>
+                                        </>
                                     }
                                 </div>
                                 <div className="notes-footer">
                                     <button className="notes-close" onClick={(e) => { this.setState({ shownotes: false }); this.saveNotes(); }}>Save and Close</button>
                                 </div>
                             </div>
-                        </div> : null }
+                        </div> : null}
                 </ul>
             </div>
         )

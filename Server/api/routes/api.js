@@ -10,12 +10,41 @@ const unauthorizedMessage = {
   }
 };
 const db = makeDB();
-// Middleware to check session
-const checkSession = (req, res, next) => {
 
-  if (!req.session.username) {
+const checkFacultyAcc = (req, res, next) => {
+  console.log(req.session);
+  if (!req.session.is_faculty) {
     return res.status(403).send(unauthorizedMessage);
   }
+  next();
+}
+
+// Middleware to check session
+const checkPlanAcc = (req, res, next) => {
+  if (!req.session.username)
+    return res.status(403).send(unauthorizedMessage);
+
+  //Check if user is faculty and if they are accessing a plan
+  if(!req.session.is_faculty && req.params.plan_id){
+    let accPlans = req.session.accessible_plans;
+
+    if(!accPlans.includes(parseInt(req.params.plan_id)))
+      return res.status(403).send(unauthorizedMessage);
+  }
+  next();
+};
+
+const checkUserAcc = (req, res, next) => {
+  console.log(req.session);
+  if (!req.session.username)
+    return res.status(403).send(unauthorizedMessage);
+
+  //Check if user is faculty and if they are accessing a plan
+  if(!req.session.is_faculty && req.params.student){
+    if(req.params.student !== req.session.username)
+      return res.status(403).send(unauthorizedMessage);
+  }
+  
   next();
 };
 
@@ -28,10 +57,22 @@ router.get('/test', function (req, res) {
 });
 
 /* GET User Information if loged in */
-router.get('/user', checkSession, async (req, res) => {
+router.get('/user', checkPlanAcc, async (req, res) => {
   console.log("GET API REQEST -> user - RESPONSE: " + req.session.username);
   res.status(200).send({ message: req.session.username });
 });
+
+router.get('/students', checkFacultyAcc, async (req, res) => {
+  console.log("GET API REQEST -> get all students - CALLER: " + req.session.username);
+  try {
+    const results = await db.query('SELECT username, first_name, last_name FROM ljc_user WHERE is_faculty = 0;');
+    res.status(200).send(results);
+  } catch(error) {
+    console.log(error);
+    res.status(500).send({message: "Internal Server Error"});
+  }
+});
+
 
 //Logout URI -> /api/user/logout
 router.post('/user/logout', (req, res) => {
@@ -51,13 +92,15 @@ router.post('/user/login', async (req, res) => {
 
   try {
     const hashedPassword = sha256.sha256(pass);
-    console.log(uname, pass);
-    const results = await db.query('SELECT username, first_name, last_name, is_faculty FROM ljc_user WHERE username = ? AND password = ?', [uname, pass]);
-
+    const results = await db.query('SELECT username, first_name, last_name, is_faculty FROM ljc_user WHERE username = ? AND password = ?', [uname, hashedPassword]);
+    const accessible_plans = await db.query('SELECT plan_id FROM ljc_plan WHERE username = ?', [uname]);
     //If the user is found in the database, set the session username to the username
     if (results.length > 0) {
       console.log(`API Login -> User: ${uname} - SUCCESS`)
       req.session.username = uname;
+      req.session.is_faculty = results[0].is_faculty;
+      req.session.accessible_plans = accessible_plans.map(plan => plan.plan_id);
+      
       return res.status(200).send({ username: uname, plan: -1, is_faculty: results[0].is_faculty, loggedIn: true });
     } else {
       return res.status(401).send({ message: "Invalid Username or Password" });
@@ -74,12 +117,10 @@ router.post('/user/login', async (req, res) => {
 // Define the SQL queries as constants
 const getDefaultPlanQuery = `SELECT plan_id FROM ljc_plan WHERE username = ? && default_ = 1;`;
 
-router.get('/default/:student', checkSession, async (req, res) => {
+router.get('/default/:student', checkUserAcc, async (req, res) => {
   const username = req.session.username;
   const student = req.params.student;
   console.log(`API request: Get default plan for ${student}, Username - ${username}`);
-
-
 
   try {
     let default_plans = await db.query(getDefaultPlanQuery, [student]);
@@ -100,7 +141,7 @@ const delPlannedCoursesQuery = `DELETE from ljc_planned_courses WHERE plan_id = 
 const insPlannedYearQuery = `INSERT INTO ljc_planned_years(plan_id, year) VALUES(?, ?);`
 const insPlannedCourseQuery = `INSERT INTO ljc_planned_courses(plan_id, course_id, year, term) VALUES(?, ?, ?, ?);`
 
-router.post('/schedule/:plan_id', checkSession, async (req, res) => {
+router.post('/schedule/:plan_id', checkPlanAcc, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Set schedule for plan with ID ${planId}, Username - ${username}`);
@@ -130,7 +171,7 @@ router.post('/schedule/:plan_id', checkSession, async (req, res) => {
 const getPlannedYearsQuery = `SELECT * FROM ljc_planned_years WHERE plan_id = ?;`;
 const getPlannedCoursesQuery = `SELECT course_id FROM ljc_planned_courses WHERE plan_id = ? && year = ? && term = ?;`;
 
-router.get('/schedule/:plan_id', checkSession, async (req, res) => {
+router.get('/schedule/:plan_id', checkPlanAcc, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get schedule for plan with ID ${planId}, Username - ${username}`);
@@ -171,7 +212,7 @@ router.get('/schedule/:plan_id', checkSession, async (req, res) => {
 const getCatalogYearQuery = `SELECT catalog_year FROM ljc_plan WHERE plan_id = ?`;
 const getCatalogCoursesQuery = `SELECT * FROM ljc_course, ljc_catalog where ljc_course.course_id = ljc_catalog.course_id and ljc_catalog.catalog_year = ?`;
 
-router.get('/catalog/:plan_id', checkSession, async (req, res) => {
+router.get('/catalog/:plan_id', checkPlanAcc, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`GET request: /catalog/${planId}, Username - ${username}`);
@@ -182,7 +223,6 @@ router.get('/catalog/:plan_id', checkSession, async (req, res) => {
     let catalog_year = catalog_year_obj[0].catalog_year;
 
     let catalog_courses = await db.query(getCatalogCoursesQuery, [catalog_year]);
-    console.log(catalog_courses);
 
     let catalog = {
       year: catalog_year,
@@ -216,7 +256,7 @@ const getPlanMinors = `SELECT minor.minor as minor_name
                           JOIN ljc_minor AS minor ON planned_minor.minor_id = minor.minor_id
                         WHERE plan.plan_id = ? && minor.minor_id != 5;`;
 
-router.get('/info/:plan_id', checkSession, async (req, res) => {
+router.get('/info/:plan_id', checkPlanAcc, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get general info for plan with ID ${planId}, Username - ${username}`);
@@ -267,7 +307,7 @@ const getRequiredMinorCourses = `SELECT minor.minor AS min, minor_requirement.co
                                     JOIN ljc_minor_requirements AS minor_requirement ON planned_minor.minor_id = minor_requirement.minor_id
                                   WHERE plan.plan_id = ?;`;
 
-router.get('/requirements/:plan_id', checkSession, async (req, res) => {
+router.get('/requirements/:plan_id', checkPlanAcc, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get catalog for plan with ID ${planId}, Username - ${username}`);
@@ -305,7 +345,7 @@ router.get('/requirements/:plan_id', checkSession, async (req, res) => {
 const getStudentNotesQuery = `SELECT student_notes FROM ljc_plan WHERE plan_id = ?;`;
 const getFacultyNotesQuery = `SELECT faculty_notes FROM ljc_plan WHERE plan_id = ?;`;
 
-router.get('/notes/:plan_id', checkSession, async (req, res) => {
+router.get('/notes/:plan_id', checkPlanAcc, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Get notes for plan with ID ${planId}, Username - ${username}`);
@@ -317,7 +357,7 @@ router.get('/notes/:plan_id', checkSession, async (req, res) => {
     const student_notes_obj = await db.query(getStudentNotesQuery, [planId]);
     notes.studentnotes = student_notes_obj[0].student_notes;
 
-    if (true /*req.session.isFaculty*/) {
+    if (req.session.is_faculty) {
       const faculty_notes_obj = await db.query(getFacultyNotesQuery, [planId]);
       notes.facultynotes = faculty_notes_obj[0].faculty_notes;
     }
@@ -332,18 +372,23 @@ router.get('/notes/:plan_id', checkSession, async (req, res) => {
 const setStudentNotesQuery = `UPDATE ljc_plan SET student_notes = ? WHERE plan_id = ?;`;
 const setFacultyNotesQuery = `UPDATE ljc_plan SET faculty_notes = ? WHERE plan_id = ?;`;
 
-router.post('/notes/:plan_id', checkSession, async (req, res) => {
+router.post('/notes/:plan_id', checkPlanAcc, async (req, res) => {
   const username = req.session.username;
   const planId = req.params.plan_id;
   console.log(`API request: Set notes for plan with ID ${planId}, Username - ${username}`);
-
 
   try {
     if (req.body.studentnotes) {
       await db.query(setStudentNotesQuery, [req.body.studentnotes, planId]);
     }
-    if (req.body.facultynotes && true /*req.session.isFaculty*/) {
+    else if (req.body.studentnotes ==null) {
+      await db.query(setStudentNotesQuery, ["", planId]);
+    }
+    if (req.body.facultynotes != null && req.session.is_faculty) {
       await db.query(setFacultyNotesQuery, [req.body.facultynotes, planId]);
+    }
+    else if (req.body.facultynotes == null && req.session.is_faculty) {
+      await db.query(setFacultyNotesQuery, ["", planId]);
     }
 
     res.status(200).send({ message: "success" });
@@ -354,12 +399,11 @@ router.post('/notes/:plan_id', checkSession, async (req, res) => {
 });
 
 //get plans
-
+/*
 const getPlans = `select plan_id, planname, catalog_year, default_ as "default" from ljc_plan where username=?;`
 
-router.get('/plans', checkSession, async (req, res) => {
+router.get('/plans', checkPlanAcc, async (req, res) => {
   console.log("API request: Get plans");
-
 
   try {
     // Get the planned years and courses from the database
@@ -370,10 +414,10 @@ router.get('/plans', checkSession, async (req, res) => {
     res.status(500).send(error.message);
   }
   
-});
+});*/
 
 //get get Heading URI -> /api/heading
-
+/*
 const getHeadingQuery = `
 SELECT
   p.plan_id, username, catalog_year, major, minor
@@ -386,10 +430,9 @@ from
 where
   username = ? and minor != 'Gen Eds';`;
 
-router.get('/heading', checkSession, async (req, res) => {
+router.get('/heading', checkPlanAcc, async (req, res) => {
   const username = req.session.username;
   console.log(`API request: heading, Username - ${username}`);
-
 
   try {
     const result = await db.query(getHeadingQuery, [username]);
@@ -398,12 +441,12 @@ router.get('/heading', checkSession, async (req, res) => {
     console.error(error);
     res.status(500).send(error.message);
   } 
-});
+});*/
 
 
 //Get Catalog URI -> /api/catalog
 //LUKE EDITED THIS FUNCTION TO DO STUFF
-router.get('/Catalog', checkSession, async (req, res) => {
+router.get('/Catalog', async (req, res) => {
   console.log("API REQEST -> Get Catalog, Username - " + req.session.username);
 
   try {
@@ -416,17 +459,6 @@ router.get('/Catalog', checkSession, async (req, res) => {
   
 });
 
-//Get Catalog URI -> /api/catalog
-router.get('/requirments', async (req, res) => {
-  console.log("API REQEST -> Get requirement, Username - " + req.session.username);
-
-  try {
-    res.status(418).send({ message: "METHOD NOT IMPLEMENTED" });
-  }
-  catch (err) {
-    res.status(500).send({ message: err });
-  }
-});
 
 router.get('/help', function (req, res) {
   const fs = require('fs');
@@ -445,16 +477,14 @@ router.get('/help', function (req, res) {
 
 const query = "select plan_id from ljc_plan where username=? and planname=?";
 
-router.post('/createplan/:plan_id', checkSession, async (req, res) => {
-
-  console.log(req.body);
-
+router.post('/createplan/:plan_id', checkPlanAcc, async (req, res) => {
   let { name, createMajor, createMinor, catayear } = req.body;
-  const uname = await db.query(`select username from ljc_plan where plan_id=${req.params.plan_id}`)
-  let foruser=uname[0].username;
-  console.log(foruser);
+
   //name conflict check
   try {
+    const uname = await db.query(`select username from ljc_plan where plan_id=${req.params.plan_id}`)
+    let foruser=uname[0].username;
+
     let namechk = await db.query(query, [foruser, name]);
     while (namechk.length > 0) {
       name = "_" + name;
@@ -483,9 +513,12 @@ router.post('/createplan/:plan_id', checkSession, async (req, res) => {
   
 });
 
-router.get('/manageplan', checkSession, async (req, res) => {
+router.get('/manageplan/:plan_id', checkPlanAcc, async (req, res) => {
   try {
-    let plans = await db.query("select * from ljc_plan where username=?", [req.session.username ? req.session.username : "semjaza"]);
+    const uname = await db.query(`select username from ljc_plan where plan_id=${req.params.plan_id}`)
+    let foruser=uname[0].username;
+
+    let plans = await db.query("select * from ljc_plan where username=?", [foruser]);
     let displayplans = [];
     for (let m of plans) {
       let maj = ""

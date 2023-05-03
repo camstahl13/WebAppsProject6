@@ -7,7 +7,6 @@ import './index.css';
 export function LoginPage() {
 	const [state, setState] = useState("");
 	let nav = useNavigate();
-	const loginMessage = "";
 	let { signin } = useAuth();
 
 	let login = (e) => {
@@ -52,7 +51,7 @@ export function LoginPage() {
 					<button className="btn login-btn" type="submit" id="sub">Sign In</button>
 					<a className="btn register-btn" href="register.php">Register</a>
 				</section>
-				<p classname="loginerror" style={{color: 'red'}}>{state}</p>
+				<p className="loginerror" style={{color: 'red'}}>{state}</p>
 			</form>
 			
 		</div>

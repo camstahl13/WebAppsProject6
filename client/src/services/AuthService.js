@@ -8,7 +8,7 @@ export default AuthContext;
 const User = {
 	username: '',
 	plan: -1,
-	isFaculty: false,
+	is_faculty: false,
 	loggedIn: false,
 };
 
@@ -29,14 +29,6 @@ export function ProvideAuth({ children }) {
 
 export function AuthRequiredStudent({ children, ...res }) {
 	const { user } = useAuth();
-	/*AuthService.isAuthenticated()
-		.then(res => {
-			console.log(res.error);
-			if(res.error.status != 200){
-				user.loggedIn = false;
-				localStorage.removeItem("user");
-			}
-		})*/
 	return (user.loggedIn ? <Outlet /> : <Navigate to="/login" />);
 }
 

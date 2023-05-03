@@ -872,3 +872,9 @@ li.reqcourse:hover {
   color: white;
   resize: vertical;
 }
+
+.faculty-student-list a, .faculty-student-list a:visited, .faculty-student-list a:hover, .faculty-student-list a:active {
+  color: red;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
